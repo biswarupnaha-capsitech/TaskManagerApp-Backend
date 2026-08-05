@@ -1,15 +1,15 @@
 ﻿using Capsitech;
 using Capsitech.Data.MongoDB;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Projects.Common;
 using Projects.Services.Task;
+using TaskManagerApp.Dtos.Task;
 
 namespace Projects.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(AuthenticationSchemes = "Bearer")]
-    [Authorize(Roles = "ADMIN")]
+    //[Authorize(AuthenticationSchemes = "Bearer")]
+    //[Authorize(Roles = "ADMIN")]
     [ApiController]
     public class TaskController : ApiControllerBase
     {
@@ -39,13 +39,13 @@ namespace Projects.Controllers
             {
 
                 _logger.LogError(ex, "Error fetching tasks");
-                response.AddError(ex);
+                response.AddError(ex.Message);
             }
             return response;
         }
 
         [HttpPost("CreateTask")]
-        public async Task<ApiResponse<Models.Task>> CreateTask([FromBody] Models.Task task)
+        public async Task<ApiResponse<Models.Task>> CreateTask([FromBody] CreateTaskDTO task)
         {
             ApiResponse<Models.Task> response = new();
             try
@@ -58,13 +58,13 @@ namespace Projects.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating task");
-                response.AddError(ex);
+                response.AddError(ex.Message);
             }
             return response;
         }
 
         [HttpPut("UpdateTask/{id}")]
-        public async Task<ApiResponse<Models.Task>> UpdateTask(string id, [FromBody] Models.Task task)
+        public async Task<ApiResponse<Models.Task>> UpdateTask(string id, [FromBody] UpdateTaskDTO task)
         {
             ApiResponse<Models.Task> response = new();
             try
@@ -72,12 +72,11 @@ namespace Projects.Controllers
                 await _taskService.UpdateAsync(id, task);
                 _logger.LogInformation("Task updated with ID: {Id}", id);
                 response.Message = "Task updated successfully";
-                response.Result = task;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating task");
-                response.AddError(ex);
+                response.AddError(ex.Message);
             }
             return response;
         }
@@ -96,7 +95,7 @@ namespace Projects.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting task");
-                response.AddError(ex);
+                response.AddError(ex.Message);
             }
             return response;
         }

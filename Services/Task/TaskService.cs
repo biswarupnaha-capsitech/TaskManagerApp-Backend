@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using Projects.Config.Db;
 using Projects.Dtos.Common;
 using Projects.Dtos.Task;
+using TaskManagerApp.Dtos.Task;
 
 namespace Projects.Services.Task
 {
@@ -27,20 +28,31 @@ namespace Projects.Services.Task
         public async Task<Models.Task?> GetAsync(string id) =>
             await _taskCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
-        public async Task<Models.Task> CreateAsync(Models.Task task)
+        public async Task<Models.Task> CreateAsync(CreateTaskDTO task)
         {
-            await _taskCollection.InsertOneAsync(task);
-            return task;
+            var newTask = new Models.Task
+            {
+                Title = task.Title,
+                Description = task.Description,
+                Status = task.Status,
+                IsDeleted = task.IsDeleted
+            };
+
+            await _taskCollection.InsertOneAsync(newTask);
+            return newTask;
         }
 
-        public async System.Threading.Tasks.Task UpdateAsync(string id, Models.Task updatedTask) =>
-            await _taskCollection.ReplaceOneAsync(x => x.Id == id, updatedTask);
+        public async System.Threading.Tasks.Task UpdateAsync(string id, UpdateTaskDTO updatedTask)
+        {
+            var update = Builders<Models.Task>.Update
+                            .Set(x => x.Title, updatedTask.Title)
+                            .Set(x => x.Description, updatedTask.Description)
+                            .Set(x => x.Status, updatedTask.Status);
 
+            await _taskCollection.UpdateOneAsync(x => x.Id == id, update);
+        }
 
-        public async System.Threading.Tasks.Task RemoveAsync(string id) =>
-            await _taskCollection.DeleteOneAsync(x => x.Id == id);
-
-        public async System.Threading.Tasks.Task DeleteAsync(String id)=>
+        public async System.Threading.Tasks.Task DeleteAsync(String id) =>
             await _taskCollection.DeleteOneAsync(x => x.Id == id);
 
         public async Task<PaginatedResultDto<Models.Task>> GetPaginatedAsync(TaskQueryDTO query)
