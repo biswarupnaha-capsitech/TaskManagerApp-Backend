@@ -4,10 +4,10 @@ using Capsitech.Data.MongoDB;
 using Capsitech.Extensions;
 using Capsitech.Storage;
 using Capsitech.Utility;
-using Projects.Common;
-using Projects.Identity;
-using Projects.Models;
-using Projects.Services;
+using TaskManager.Common;
+using TaskManager.Identity;
+using TaskManager.Models;
+using TaskManager.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Projects.Controllers
+namespace TaskManager.Controllers
 {
     [Route("/API/Auth")]
     public class AuthController : ApiControllerBase

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
-using Projects;
+using TaskManager;
 
 var builder = WebApplication.CreateBuilder(args);
 

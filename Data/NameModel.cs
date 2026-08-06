@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 
 
-namespace Projects.Data
+namespace TaskManager.Data
 {
     /// <summary>
     /// Default model for name

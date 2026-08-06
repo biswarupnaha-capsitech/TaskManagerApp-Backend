@@ -1,4 +1,4 @@
-namespace Projects.Config.Db
+namespace TaskManager.Config.Db
 {
     public class DbSettings
     {

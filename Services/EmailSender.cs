@@ -4,9 +4,9 @@ using SendGrid;
 using SendGrid.Helpers.Mail;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Projects.Util;
+using TaskManager.Util;
 
-namespace Projects.Services
+namespace TaskManager.Services
 {
     /// <summary>
     /// Email sender, This class is used by the application to send email for account confirmation and password reset.

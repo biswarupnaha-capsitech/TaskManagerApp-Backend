@@ -8,11 +8,11 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Projects.Services;
-using Projects.Data;
-using Projects.Common;
+using TaskManager.Services;
+using TaskManager.Data;
+using TaskManager.Common;
 
-namespace Projects.Models
+namespace TaskManager.Models
 {
     [BsonIgnoreExtraElements]
     public class ApplicationUser : IdentityUser, IRecord
@@ -31,7 +31,7 @@ namespace Projects.Models
         /// <summary>
         /// User first and last name
         /// </summary>
-        public Projects.Data.NameModel Name { get; set; }
+        public TaskManager.Data.NameModel Name { get; set; }
         /// <summary>
         /// User primary role
         /// </summary>
@@ -116,11 +116,11 @@ namespace Projects.Models
     {
         public SaveUserReq() : base()
         {
-            Name = new Projects.Data.NameModel();
+            Name = new TaskManager.Data.NameModel();
         }
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
         public string UpdateId { get; set; }
-        public Projects.Data.NameModel Name { get; set; }
+        public TaskManager.Data.NameModel Name { get; set; }
 
         [BsonIgnoreIfDefault]
         public string Email { get; set; }
@@ -207,7 +207,7 @@ namespace Projects.Models
         }
     }
     [BsonIgnoreExtraElements]
-    public class ApplicationUserShort : IdNameModel<Projects.Data.NameModel>
+    public class ApplicationUserShort : IdNameModel<TaskManager.Data.NameModel>
     {
         string fullName;
         public string FullName
@@ -246,7 +246,7 @@ namespace Projects.Models
         /// <summary>
         /// User's name
         /// </summary>
-        public Projects.Data.NameModel Name { get; set; }
+        public TaskManager.Data.NameModel Name { get; set; }
         /// <summary>
         /// User role
         /// </summary>

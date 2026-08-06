@@ -1,7 +1,7 @@
 ﻿using Capsitech.Data.MongoDB;
-using Projects.Models;
+using TaskManager.Models;
 
-namespace Projects.Services
+namespace TaskManager.Services
 {
     public class DailyElevenPmJobScheduler : CronJobService
     {

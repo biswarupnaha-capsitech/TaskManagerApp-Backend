@@ -2,12 +2,12 @@
 using Capsitech.Data.MongoDB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Projects.Common;
-using Projects.Dtos.Common;
-using Projects.Dtos.Task;
-using Projects.Services.Task;
+using TaskManager.Common;
+using TaskManager.Dtos.Common;
+using TaskManager.Dtos.Task;
+using TaskManager.Services.Task;
 
-namespace Projects.Controllers
+namespace TaskManager.Controllers
 {
     [Route("api/[controller]")]
     [Authorize(AuthenticationSchemes = "Bearer")]

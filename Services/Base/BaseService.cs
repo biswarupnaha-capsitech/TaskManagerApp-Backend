@@ -1,13 +1,13 @@
 using System.Security.Claims;
-using Projects.Config.Db;
-using Projects.Models.Auth;
-using Projects.Models.Base;
-using Projects.Models.Common;
-using Projects.Services.Auth;
+using TaskManager.Config.Db;
+using TaskManager.Models.Auth;
+using TaskManager.Models.Base;
+using TaskManager.Models.Common;
+using TaskManager.Services.Auth;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace Projects.Services.Base
+namespace TaskManager.Services.Base
 {
     public class BaseService<Model>
         where Model : BaseModel

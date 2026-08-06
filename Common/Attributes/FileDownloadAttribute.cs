@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 
 
-namespace Projects.Attributes
+namespace TaskManager.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class FileDownloadAttribute : ActionFilterAttribute

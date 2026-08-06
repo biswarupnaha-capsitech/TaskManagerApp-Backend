@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Projects.Models.Auth
+namespace TaskManager.Models.Auth
 {
     public static class AccountRoles
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Projects.Config.Auth
+namespace TaskManager.Config.Auth
 {
     public class JwtSettings
     {

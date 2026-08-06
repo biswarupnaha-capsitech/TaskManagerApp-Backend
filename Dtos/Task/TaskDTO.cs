@@ -1,13 +1,13 @@
 ﻿
 
-namespace Projects.Dtos.Task
+namespace TaskManager.Dtos.Task
 {
     public class TaskDTO
     {
         public string Id { get; set; } = null!;
         public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
-        public Projects.Common.TaskStatus Status { get; set; } = Projects.Common.TaskStatus.Pending;
+        public TaskManager.Common.TaskStatus Status { get; set; } = TaskManager.Common.TaskStatus.Pending;
         public bool IsDeleted { get; set; } = false;
     }
 
@@ -22,7 +22,7 @@ namespace Projects.Dtos.Task
     {
         public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
-        public Projects.Common.TaskStatus Status { get; set; } = Projects.Common.TaskStatus.Pending;
+        public TaskManager.Common.TaskStatus Status { get; set; } = TaskManager.Common.TaskStatus.Pending;
     }
 
     public class TodoFilter

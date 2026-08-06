@@ -1,12 +1,12 @@
 ﻿using Capsitech.Data.MongoDB;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-using Projects.CollectionMetaInformation;
-using Projects.Data;
+using TaskManager.CollectionMetaInformation;
+using TaskManager.Data;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
-namespace Projects.Models
+namespace TaskManager.Models
 {
     [BsonIgnoreExtraElements]
     public class UserLog : Record, IRecord
@@ -75,7 +75,7 @@ namespace Projects.Models
         public UserLogDB(DBConfiguration DBConfig) : base(DBConfig) { }
         public UserLogDB(DBConfiguration DBConfig, ClaimsPrincipal user) : base(DBConfig, user) { }
 
-        public override string CollectionName => ProjectsCollectionName.Logs;
+        public override string CollectionName => TaskManagerCollectionName.Logs;
     }
 
     public enum EntitiesEnum

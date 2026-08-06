@@ -1,8 +1,8 @@
-using Projects.Models.Common;
+using TaskManager.Models.Common;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Projects.Models.Base
+namespace TaskManager.Models.Base
 {
     public class BaseModel
     {

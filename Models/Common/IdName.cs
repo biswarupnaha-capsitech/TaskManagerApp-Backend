@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Projects.Models.Common
+namespace TaskManager.Models.Common
 {
     public class IdName
     {

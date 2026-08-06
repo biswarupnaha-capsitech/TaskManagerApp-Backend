@@ -1,6 +1,6 @@
 ﻿using Cronos;
 
-namespace Projects.Services
+namespace TaskManager.Services
 {
     public abstract class CronJobService : IHostedService, IDisposable
     {

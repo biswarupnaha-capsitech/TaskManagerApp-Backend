@@ -2,11 +2,11 @@
 
 using Capsitech.Data.MongoDB;
 using Capsitech.Extensions;
-using Projects.Common;
-using Projects.Models;
+using TaskManager.Common;
+using TaskManager.Models;
 using MongoDB.Bson;
 
-namespace Projects.Util
+namespace TaskManager.Util
 {
     public class Utils
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Projects.Controllers;
+using TaskManager.Controllers;
 
-namespace Projects.Extension
+namespace TaskManager.Extension
 {
     public static class UrlHelperExtensions
     {

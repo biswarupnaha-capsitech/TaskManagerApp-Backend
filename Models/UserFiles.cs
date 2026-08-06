@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace Projects.Models
+namespace TaskManager.Models
 {
     [BsonIgnoreExtraElements]
     public class UserFiles : Data.Record

@@ -1,8 +1,8 @@
 using Capsitech.Data.MongoDB;
-using Projects.Common;
-using Projects.Models;
+using TaskManager.Common;
+using TaskManager.Models;
 
-namespace Projects.Services.Auth
+namespace TaskManager.Services.Auth
 {
     public class AccountService : ApiControllerBase
     {

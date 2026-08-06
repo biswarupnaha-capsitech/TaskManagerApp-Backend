@@ -1,4 +1,4 @@
-﻿using Projects.Models;
+﻿using TaskManager.Models;
 using Capsitech.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -11,7 +11,7 @@ using System.Security.Principal;
 //using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 
-namespace Projects.Identity
+namespace TaskManager.Identity
 {
     /// <summary>
     /// Provides the APIs for user sign in.

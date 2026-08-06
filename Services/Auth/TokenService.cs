@@ -1,12 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Projects.Config.Auth;
-using Projects.Models.Auth;
+using TaskManager.Config.Auth;
+using TaskManager.Models.Auth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Projects.Services.Auth
+namespace TaskManager.Services.Auth
 {
     public class TokenService
     {

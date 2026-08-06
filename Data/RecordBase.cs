@@ -5,14 +5,14 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System.Linq.Expressions;
 using System.Security.Claims;
-using Projects.Models;
+using TaskManager.Models;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Projects.Util;
-using Projects.CollectionMetaInformation;
+using TaskManager.Util;
+using TaskManager.CollectionMetaInformation;
 using System.Threading.Channels;
 
-namespace Projects.Data
+namespace TaskManager.Data
 {
     [BsonIgnoreExtraElements(Inherited = true)]
     public abstract class Record : RecordBase
@@ -27,7 +27,7 @@ namespace Projects.Data
         protected RecordDB(DBConfiguration DBConfig) : base(DBConfig)
         {
             if (_database != null)
-                _collectionLog = _database.GetCollection<UserLog>(ProjectsCollectionName.Logs);
+                _collectionLog = _database.GetCollection<UserLog>(TaskManagerCollectionName.Logs);
         }
 
         protected RecordDB(DBConfiguration DBConfig, ClaimsPrincipal user) : base(DBConfig, user) { }
@@ -553,7 +553,7 @@ namespace Projects.Data
                 };
 
                 if (_collectionLog == null && _database != null)
-                    _collectionLog = _database.GetCollection<UserLog>(ProjectsCollectionName.Logs);
+                    _collectionLog = _database.GetCollection<UserLog>(TaskManagerCollectionName.Logs);
 
                 await _collectionLog.InsertOneAsync(log);
                 return true;

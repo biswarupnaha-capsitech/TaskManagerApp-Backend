@@ -1,4 +1,4 @@
-using Projects.Models.Auth;
+using TaskManager.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 
 public class PasswordService

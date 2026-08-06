@@ -1,12 +1,12 @@
-﻿using Projects.Models.Base;
+﻿using TaskManager.Models.Base;
 
-namespace Projects.Models
+namespace TaskManager.Models
 {
     public class Task : BaseModel
     {
         public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
-        public Projects.Common.TaskStatus Status { get; set; } = Projects.Common.TaskStatus.Pending;
+        public TaskManager.Common.TaskStatus Status { get; set; } = TaskManager.Common.TaskStatus.Pending;
         public bool IsDeleted { get; set; } = false;
         public string UserId { get; set; } = null!;
     }

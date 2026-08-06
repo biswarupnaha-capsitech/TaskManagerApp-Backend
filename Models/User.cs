@@ -1,10 +1,10 @@
 ﻿using Capsitech.Data.MongoDB;
-using Projects.Common;
+using TaskManager.Common;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 
-namespace Projects.Models
+namespace TaskManager.Models
 {
     public class ForgotPasswordModel
     {

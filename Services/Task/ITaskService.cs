@@ -1,7 +1,7 @@
-﻿using Projects.Dtos.Common;
-using Projects.Dtos.Task;
+﻿using TaskManager.Dtos.Common;
+using TaskManager.Dtos.Task;
 
-namespace Projects.Services.Task
+namespace TaskManager.Services.Task
 {
     public interface ITaskService
     {

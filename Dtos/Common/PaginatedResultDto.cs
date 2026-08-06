@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Projects.Dtos.Common
+namespace TaskManager.Dtos.Common
 {
     public class PaginatedResultDto<T>
     {

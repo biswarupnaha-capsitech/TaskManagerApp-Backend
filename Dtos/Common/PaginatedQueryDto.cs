@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace Projects.Dtos.Common
+namespace TaskManager.Dtos.Common
 {
     public class PaginatedQueryDto
     {

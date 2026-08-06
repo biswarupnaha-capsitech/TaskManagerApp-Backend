@@ -2,11 +2,11 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Projects.Config.Db;
-using Projects.Dtos.Common;
-using Projects.Dtos.Task;
+using TaskManager.Config.Db;
+using TaskManager.Dtos.Common;
+using TaskManager.Dtos.Task;
 
-namespace Projects.Services.Task
+namespace TaskManager.Services.Task
 {
     public class TaskService : ITaskService
     {

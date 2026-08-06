@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Projects.Data
+namespace TaskManager.Data
 {
 
     public class SearchResultItemBase

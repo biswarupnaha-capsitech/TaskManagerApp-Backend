@@ -1,4 +1,4 @@
-namespace Projects.Dtos.Auth
+namespace TaskManager.Dtos.Auth
 {
     public class RegisterAccountDto
     {

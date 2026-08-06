@@ -8,7 +8,7 @@ using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
-namespace Projects.CollectionMetaInformation
+namespace TaskManager.CollectionMetaInformation
 {
     public class YearlyRecord
     {
@@ -37,7 +37,7 @@ namespace Projects.CollectionMetaInformation
         public List<YearlyRecord> YearlyRecords { get; set; } = new List<YearlyRecord>();
     }
 
-    public class ProjectsCollectionName
+    public class TaskManagerCollectionName
     {
         public readonly static string Masters = "CITMasters";
         public readonly static string CollectionMetaInformation = "CITCollectionMetaInformation";
@@ -50,7 +50,7 @@ namespace Projects.CollectionMetaInformation
         public readonly static ConfigDetails UserNumberConfig = new()
         {
             Prefix = "USR-",
-            CollectionName = ProjectsCollectionName.Users,
+            CollectionName = TaskManagerCollectionName.Users,
             WidthOfSeries = 4
         };
     }
@@ -67,7 +67,7 @@ namespace Projects.CollectionMetaInformation
     {
         public  CollectionMetaInformationDB(DBConfiguration dBConfiguration) : base(dBConfiguration) { }
         public CollectionMetaInformationDB(DBConfiguration dBConfiguration, ClaimsPrincipal User):base(dBConfiguration,User) { }
-        public override string CollectionName => ProjectsCollectionName.CollectionMetaInformation;
+        public override string CollectionName => TaskManagerCollectionName.CollectionMetaInformation;
 
         public async Task<CollectionMetaInformation> GetByCollectionName (string collectionName)
         {

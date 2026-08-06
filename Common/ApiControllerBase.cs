@@ -5,7 +5,7 @@ using Capsitech.Storage;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace Projects.Common
+namespace TaskManager.Common
 {
     public class ApiControllerBase : ControllerBase
     {

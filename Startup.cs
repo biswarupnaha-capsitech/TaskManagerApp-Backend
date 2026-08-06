@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Projects.Config.Auth;
-using Projects.Config.Db;
-using Projects.Identity;
-using Projects.Models;
-using Projects.Services;
-using Projects.Services.Auth;
-using Projects.Services.Task;
+using TaskManager.Config.Auth;
+using TaskManager.Config.Db;
+using TaskManager.Identity;
+using TaskManager.Models;
+using TaskManager.Services;
+using TaskManager.Services.Auth;
+using TaskManager.Services.Task;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Text;
 using System.Text.Json;
@@ -18,7 +18,7 @@ using System.Text.Json;
 using IdentityRole = Capsitech.Data.MongoDB.Identity.IdentityRole;
 
 
-namespace Projects
+namespace TaskManager
 {
     public class Startup
     {

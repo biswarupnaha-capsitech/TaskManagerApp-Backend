@@ -4,7 +4,7 @@ using Capsitech.Utility;
 using MongoDB.Bson;
 using System.Text.RegularExpressions;
 
-namespace Projects
+namespace TaskManager
 {
     public class AppConfig
     {
@@ -132,7 +132,7 @@ namespace Projects
 
     public class AppConfigStorageNames
     {
-        public string Docs { get; set; } = "projects-uat-docs";
+        public string Docs { get; set; } = "TaskManager-uat-docs";
 
     }
     public class FYOptions

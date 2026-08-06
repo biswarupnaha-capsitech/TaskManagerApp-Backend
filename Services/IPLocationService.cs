@@ -1,7 +1,7 @@
 ﻿using Capsitech.Extensions;
 using Newtonsoft.Json;
 
-namespace Projects.Services
+namespace TaskManager.Services
 {
     public static class IPLocationService
     {

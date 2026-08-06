@@ -1,9 +1,9 @@
 ﻿using Capsitech.Extensions;
-using Projects.Data;
-using Projects.Models;
+using TaskManager.Data;
+using TaskManager.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace Projects.Common;
+namespace TaskManager.Common;
 
 
 public enum TimeFormat

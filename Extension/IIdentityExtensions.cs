@@ -3,7 +3,7 @@ using Capsitech.Utility;
 using System.Security.Claims;
 using System.Security.Principal;
 
-namespace Projects.Extensions
+namespace TaskManager.Extensions
 {
     public static class IIdentityExtensions
     {
