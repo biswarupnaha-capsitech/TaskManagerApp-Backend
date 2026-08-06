@@ -1,8 +1,8 @@
 ﻿using Capsitech.Data.MongoDB;
-using TaskManager.Common;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
+using TaskManager.Common;
 
 namespace TaskManager.Models
 {

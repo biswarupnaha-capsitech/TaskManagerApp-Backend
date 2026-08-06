@@ -1,19 +1,23 @@
-﻿using Capsitech;
+﻿using System.Security.Claims;
+using Capsitech;
 using Capsitech.Data.Models;
 using Capsitech.Data.MongoDB;
 using Capsitech.Extensions;
 using Capsitech.Storage;
 using Capsitech.Utility;
-using TaskManager.Common;
-using TaskManager.Identity;
-using TaskManager.Models;
-using TaskManager.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Newtonsoft.Json.Linq;
+using TaskManager.Common;
+using TaskManager.Identity;
+using TaskManager.Models;
+using TaskManager.Models.Auth;
+using TaskManager.Services;
+using static TaskManager.Identity.ApplicationSignInManager;
 
 namespace TaskManager.Controllers
 {
@@ -22,12 +26,12 @@ namespace TaskManager.Controllers
     {
         private readonly ILogger<AuthController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationSignInManager _signInManager;
         private readonly IEmailSender _emailSender;
 
 
         public AuthController(ILogger<AuthController> logger, IEmailSender emailSender, UserManager<ApplicationUser> userManager,
-          SignInManager<ApplicationUser> signInManager, DBConfiguration dbConfig) : base(dbConfig)
+          ApplicationSignInManager signInManager, DBConfiguration dbConfig) : base(dbConfig)
         {
             _logger = logger;
             _userManager = userManager;
@@ -123,7 +127,7 @@ namespace TaskManager.Controllers
                     ApplicationUser user = await _userManager.FindByNameAsync(model.UserName);
                     if (user != null && user.Status == ApplicationUserStatus.Active) //&& !isClient 
                     {
-                        
+
                         // This doesn't count login failures towards account lockout
                         // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                         Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
@@ -134,18 +138,23 @@ namespace TaskManager.Controllers
                             //{
                             //    throw new AppModelException("User not allowed to sign-in");
                             //}
-                            string token = ((ApplicationSignInManager)_signInManager).GenerateJwtToken(user);
+                            //string token = ((ApplicationSignInManager)_signInManager).GenerateJwtToken(user);
+
+                            var tokens = await _signInManager.GenerateTokensAsync(user);
+
+                            SetRefreshTokenCookie(tokens.RefreshToken);
+
                             response.Result = new UserLogInResponse
                             {
                                 Name = user.Name.ToString(),
-                                Token = token,
+                                Token = tokens.AccessToken,
                                 TokenExpiry = 15,
                                 Id = user.Id,
                                 Email = user.Email,
                                 UserName = user.UserName,
                                 Role = user.Role,
                                 Roles = user.Roles,
-                                RoleType=user.RoleType,
+                                RoleType = user.RoleType,
                                 IsDefaultPassword = user.IsDefaultPassword,
                             };
 
@@ -190,12 +199,75 @@ namespace TaskManager.Controllers
             return response;
         }
 
+        [HttpPost("Refresh")]
+        [AllowAnonymous]
+        public async Task<ApiResponse<UserLogInResponse>> Refresh()
+        {
+            ApiResponse<UserLogInResponse> response = new();
+            var refreshTokenFromCookie = Request.Cookies["tm-refresh"];
+
+            try
+            {
+                if (string.IsNullOrEmpty(refreshTokenFromCookie))
+                    throw new AppModelException("Refresh token is missing.");
+
+                var db = new ApplicationUserDB(_dbConfig);
+                var user = await db.GetAsync(u => u.RefreshToken == refreshTokenFromCookie);
+
+                if (user == null || user.RefreshTokenExpiry <= DateTime.UtcNow)
+                    throw new AppModelException("Invalid or expired refresh token.");
+
+
+                var newTokens = await _signInManager.GenerateTokensAsync(user);
+
+                user.RefreshToken = newTokens.RefreshToken;
+                user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+                await _userManager.UpdateAsync(user);
+
+                SetRefreshTokenCookie(newTokens.RefreshToken);
+
+                response.Result = new UserLogInResponse
+                {
+                    Name = user.Name.ToString(),
+                    Token = newTokens.AccessToken,
+                    TokenExpiry = 15,
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    Role = user.Role,
+                    Roles = user.Roles,
+                    RoleType = user.RoleType,
+                    IsDefaultPassword = user.IsDefaultPassword,
+                };
+            }
+            catch (AppModelException ex)
+            {
+                _logger.LogError(ex, "Error refreshing tokens");
+                response.AddError(ex);
+            }
+
+            return response;
+        }
+
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+
+            Response.Cookies.Append("tm-refresh", refreshToken, cookieOptions);
+        }
         #endregion
 
         #region Change password
         // update password welcome to other password for user
         [Authorize(AuthenticationSchemes = "Bearer")]
- /*       [Authorize(Roles = "ADMIN, HRMANAGER, HREXECUTIVE, EMPLOYEE, CANDIDATE")]*/
+        /*       [Authorize(Roles = "ADMIN, HRMANAGER, HREXECUTIVE, EMPLOYEE, CANDIDATE")]*/
         [HttpPost("ChangePassword/{userId}")]
         public async Task<ApiResponse<bool>> ChangePassword(string userId, [FromBody] ChangePasswordViewModel item)
         {
@@ -226,7 +298,7 @@ namespace TaskManager.Controllers
                     response.Status = true;
                     response.Result = true;
 
-                  if (!await new ApplicationUserDB(_dbConfig, User).UpdateAsync(currentUser.Id, Builders<ApplicationUser>.Update.Set("InitPasswordChanged", true).Set("IsDefaultPassword", false)))
+                    if (!await new ApplicationUserDB(_dbConfig, User).UpdateAsync(currentUser.Id, Builders<ApplicationUser>.Update.Set("InitPasswordChanged", true).Set("IsDefaultPassword", false)))
                         throw new Exception("Something went wrong, please try again");
                 }
                 else
@@ -270,12 +342,12 @@ namespace TaskManager.Controllers
                 {
 
                     var userRcd = await db.GetAsync(u => u.Id == user.Id);
-                    if(userRcd!=null)
+                    if (userRcd != null)
                     {
                         if (user.UserImage != null && !user.UserImage.Path.IsEmpty()) { }
                         //userRcd.UserImage = await UploadImage(user, true, null);
                         else { }
-                            //userRcd.UserImage = await UploadImage(user, false, userRcd);
+                        //userRcd.UserImage = await UploadImage(user, false, userRcd);
                     }
                     //userRcd.Role = user?.Role?.Trim()?.ToUpper();
                     userRcd.Role = "Admin";
@@ -285,7 +357,7 @@ namespace TaskManager.Controllers
                     userRcd.Name = new Data.NameModel(user?.Name?.First, user?.Name?.Last);
                     //userRcd.Address = user?.Address;
                     userRcd.PhoneNumber = user?.PhoneNumber;
-                    
+
                     userRcd.UpdatedBy = new RecordUpdateInfo
                     {
                         Date = DateTime.UtcNow,
@@ -345,7 +417,7 @@ namespace TaskManager.Controllers
         /// </summary>
         //[Authorize(AuthenticationSchemes = "Bearer")]
         [HttpGet("UserList")]
-        public async Task<ApiResponse<PagedData<ApplicationUser>>> GetUserList(UserType userType = UserType.All,string nameSearch = "", string roleSearch = "", string mailSearch = "", string phoneNumberSearch = "", int status = 0, int start = 0, int length = 5000)
+        public async Task<ApiResponse<PagedData<ApplicationUser>>> GetUserList(UserType userType = UserType.All, string nameSearch = "", string roleSearch = "", string mailSearch = "", string phoneNumberSearch = "", int status = 0, int start = 0, int length = 5000)
         {
             ApiResponse<PagedData<ApplicationUser>> response = new() { Result = new PagedData<ApplicationUser>() };
             try
@@ -367,7 +439,7 @@ namespace TaskManager.Controllers
                     filter &= filterBuilder.Or(regexName, regexEmail);
                 }
 
-                if(userType!= UserType.All)
+                if (userType != UserType.All)
                 {
                     filter &= filterBuilder.Eq("RoleType", userType);
                 }
@@ -383,9 +455,9 @@ namespace TaskManager.Controllers
                 //filter for mailSearch
                 if (!mailSearch.IsEmpty())
 
-                //filter for phoneNumberSearch
-                if (!phoneNumberSearch.IsEmpty())
-                    filter &= filterBuilder.Or(filterBuilder.Regex("PhoneNumber", new BsonRegularExpression(phoneNumberSearch, "i")));
+                    //filter for phoneNumberSearch
+                    if (!phoneNumberSearch.IsEmpty())
+                        filter &= filterBuilder.Or(filterBuilder.Regex("PhoneNumber", new BsonRegularExpression(phoneNumberSearch, "i")));
 
                 var db = new ApplicationUserDB(_dbConfig);
                 var qry = db.GetCollectionBson()

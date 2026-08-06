@@ -110,6 +110,9 @@ namespace TaskManager.Models
             };
         }
 
+        public string RefreshToken { get; set; }
+        [BsonIgnoreIfDefault, BsonIgnoreIfNull]
+        public DateTime? RefreshTokenExpiry { get; set; }
     }
 
     public class SaveUserReq : IdentityUser, IRecord
@@ -621,5 +624,4 @@ namespace TaskManager.Models
         public string UserId { get; set; }
         public FcmToken Fcm_Token { get; set; }
     }
-
 }
