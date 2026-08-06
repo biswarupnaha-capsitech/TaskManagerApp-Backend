@@ -19,7 +19,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "TaskManagerApp": {
+    "TaskManager": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
