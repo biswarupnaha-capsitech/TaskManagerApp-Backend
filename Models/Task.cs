@@ -8,5 +8,6 @@ namespace Projects.Models
         public string Description { get; set; } = null!;
         public Projects.Common.TaskStatus Status { get; set; } = Projects.Common.TaskStatus.Pending;
         public bool IsDeleted { get; set; } = false;
+        public string UserId { get; set; } = null!;
     }
 }

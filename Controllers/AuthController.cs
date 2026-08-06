@@ -277,10 +277,11 @@ namespace Projects.Controllers
                         else { }
                             //userRcd.UserImage = await UploadImage(user, false, userRcd);
                     }
-                    userRcd.Role = user?.Role?.Trim()?.ToUpper();
+                    //userRcd.Role = user?.Role?.Trim()?.ToUpper();
+                    userRcd.Role = "Admin";
                     userRcd.Roles = new List<string>() { user?.Role?.Trim()?.ToUpper() };
                     userRcd.Status = user.Status;
-                    userRcd.RoleType = user.RoleType;
+                    userRcd.RoleType = RoleTypes.Admin;
                     userRcd.Name = new Data.NameModel(user?.Name?.First, user?.Name?.Last);
                     //userRcd.Address = user?.Address;
                     userRcd.PhoneNumber = user?.PhoneNumber;

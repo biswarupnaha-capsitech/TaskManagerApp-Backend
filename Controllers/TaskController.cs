@@ -1,15 +1,17 @@
 ﻿using Capsitech;
 using Capsitech.Data.MongoDB;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Projects.Common;
+using Projects.Dtos.Common;
+using Projects.Dtos.Task;
 using Projects.Services.Task;
-using TaskManagerApp.Dtos.Task;
 
 namespace Projects.Controllers
 {
     [Route("api/[controller]")]
-    //[Authorize(AuthenticationSchemes = "Bearer")]
-    //[Authorize(Roles = "ADMIN")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    [Authorize(Roles = "ADMIN")]
     [ApiController]
     public class TaskController : ApiControllerBase
     {
@@ -25,13 +27,13 @@ namespace Projects.Controllers
 
 
         [HttpGet("GetTasks")]
-        public async Task<ApiResponse<List<Models.Task>>> GetTasks()
+        public async Task<ApiResponse<PaginatedResultDto<TaskDTO>>> GetTasks([FromQuery] PaginatedQueryDto query)
         {
-            ApiResponse<List<Models.Task>> response = new();
+            ApiResponse<PaginatedResultDto<TaskDTO>> response = new();
             try
             {
-                var tasks = await _taskService.GetAsync();
-                _logger.LogInformation("Retrieved {Count} tasks", tasks.Count);
+                var tasks = await _taskService.GetAsync(query);
+                _logger.LogInformation("Retrieved {Count} tasks", tasks.Total);
                 response.Message = "Tasks retrieved successfully";
                 response.Result = tasks;
             }
@@ -45,9 +47,9 @@ namespace Projects.Controllers
         }
 
         [HttpPost("CreateTask")]
-        public async Task<ApiResponse<Models.Task>> CreateTask([FromBody] CreateTaskDTO task)
+        public async Task<ApiResponse<TaskDTO>> CreateTask([FromBody] CreateTaskDTO task)
         {
-            ApiResponse<Models.Task> response = new();
+            ApiResponse<TaskDTO> response = new();
             try
             {
                 var createdTask = await _taskService.CreateAsync(task);
@@ -64,9 +66,9 @@ namespace Projects.Controllers
         }
 
         [HttpPut("UpdateTask/{id}")]
-        public async Task<ApiResponse<Models.Task>> UpdateTask(string id, [FromBody] UpdateTaskDTO task)
+        public async Task<ApiResponse<TaskDTO>> UpdateTask(string id, [FromBody] UpdateTaskDTO task)
         {
-            ApiResponse<Models.Task> response = new();
+            ApiResponse<TaskDTO> response = new();
             try
             {
                 await _taskService.UpdateAsync(id, task);
