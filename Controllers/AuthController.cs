@@ -171,6 +171,7 @@ namespace TaskManager.Controllers
                             await new ApplicationUserDB(_dbConfig).RecordLoginDetail(user, ip, agent);
 
                             _logger.LogDebug($"User '{user.UserName}' token generated");
+                            response.Message = $"{user.Name.First} logged in!";
                         }
                         else
                         {
@@ -209,7 +210,7 @@ namespace TaskManager.Controllers
         public async Task<ApiResponse<UserLogInResponse>> Refresh()
         {
             ApiResponse<UserLogInResponse> response = new();
-            var refreshTokenFromCookie = Request.Cookies["tm-refresh"];
+            var refreshTokenFromCookie = Request.Cookies["tm-refreshToken"];
 
             try
             {
@@ -263,7 +264,7 @@ namespace TaskManager.Controllers
                 Expires = DateTime.UtcNow.AddDays(7)
             };
 
-            Response.Cookies.Append("tm-refresh", refreshToken, cookieOptions);
+            Response.Cookies.Append("tm-refreshToken", refreshToken, cookieOptions);
         }
         #endregion
 

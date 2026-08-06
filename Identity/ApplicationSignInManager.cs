@@ -85,11 +85,11 @@ namespace TaskManager.Identity
 				claims.Add(new Claim("UserRole", string.Join(",", user.Role.ToString())));
 
 			//generate token
-			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AppConfig.Current.Jwt.Key));
+			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AppConfig.Current.Jwt?.Key!));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
 			var token = new JwtSecurityToken(
-				issuer: AppConfig.Current.Jwt.Issuer,
+				issuer: AppConfig.Current.Jwt?.Issuer,
 				//audience: config["Jwt:Issuer"],
 				claims: claims,
 				expires: tokenType == TokenType.AccessToken ? DateTime.Now.AddMinutes(15) : DateTime.Now.AddDays(7),
