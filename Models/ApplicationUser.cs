@@ -110,7 +110,7 @@ namespace TaskManager.Models
             };
         }
 
-        public string RefreshToken { get; set; }
+        //public string RefreshToken { get; set; }
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
         public DateTime? RefreshTokenExpiry { get; set; }
     }

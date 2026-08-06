@@ -141,6 +141,11 @@ namespace TaskManager.Controllers
                             //string token = ((ApplicationSignInManager)_signInManager).GenerateJwtToken(user);
 
                             var tokens = await _signInManager.GenerateTokensAsync(user);
+                            await _userManager.SetAuthenticationTokenAsync(
+                                                user,
+                                                AppConfig.Current.Jwt?.Issuer!,
+                                                "RefreshToken",
+                                                tokens.RefreshToken);
 
                             SetRefreshTokenCookie(tokens.RefreshToken);
 
@@ -212,16 +217,14 @@ namespace TaskManager.Controllers
                     throw new AppModelException("Refresh token is missing.");
 
                 var db = new ApplicationUserDB(_dbConfig);
-                var user = await db.GetAsync(u => u.RefreshToken == refreshTokenFromCookie);
+                //var user = await db.GetAsync(u => u.RefreshToken == refreshTokenFromCookie);
+                var user = await db.GetAsync(u => u.Tokens.Any(t=>t.Name == "RefreshToken" && t.Value == refreshTokenFromCookie));
 
                 if (user == null || user.RefreshTokenExpiry <= DateTime.UtcNow)
                     throw new AppModelException("Invalid or expired refresh token.");
 
 
                 var newTokens = await _signInManager.GenerateTokensAsync(user);
-
-                user.RefreshToken = newTokens.RefreshToken;
-                user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
                 await _userManager.UpdateAsync(user);
 
@@ -350,7 +353,6 @@ namespace TaskManager.Controllers
                         //userRcd.UserImage = await UploadImage(user, false, userRcd);
                     }
                     //userRcd.Role = user?.Role?.Trim()?.ToUpper();
-                    userRcd.Role = "Admin";
                     userRcd.Roles = new List<string>() { user?.Role?.Trim()?.ToUpper() };
                     userRcd.Status = user.Status;
                     userRcd.RoleType = RoleTypes.Admin;
@@ -364,6 +366,7 @@ namespace TaskManager.Controllers
                         UserId = User.GetUserId(),
                         UserName = User.Identity.GetUserName()
                     };
+
                     result = await _userManager.UpdateAsync(userRcd);
                 }
                 else
