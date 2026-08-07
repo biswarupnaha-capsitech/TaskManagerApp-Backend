@@ -1,8 +1,12 @@
-﻿using Capsitech.Data.MongoDB.Identity;
+﻿using System.Text;
+using System.Text.Json;
+using Capsitech.Data.MongoDB.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using TaskManager.Config.Auth;
 using TaskManager.Config.Db;
 using TaskManager.Identity;
@@ -10,11 +14,6 @@ using TaskManager.Models;
 using TaskManager.Services;
 using TaskManager.Services.Auth;
 using TaskManager.Services.Task;
-using Swashbuckle.AspNetCore.SwaggerUI;
-using System.Text;
-using System.Text.Json;
-
-
 using IdentityRole = Capsitech.Data.MongoDB.Identity.IdentityRole;
 
 
@@ -117,7 +116,12 @@ namespace TaskManager
             //    c.CronExpression = @"0 23 * * *"; //every day 11pm
             //});
             services.AddHttpContextAccessor();
-
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto;
+            });
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -130,9 +134,9 @@ namespace TaskManager
                             .WithExposedHeaders("Content-Disposition");
                 });
 
-                options.AddPolicy("AllowLocalHost", builder =>
+                options.AddPolicy("AllowFFBHost", builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000", "http://localhost:5173", _configuration["AllowedOrigins"])
+                    builder.WithOrigins(_configuration["AllowedOrigins"] ?? "http://localhost:5173")
                             .AllowAnyHeader()
                             .AllowCredentials()
                             .SetPreflightMaxAge(TimeSpan.FromSeconds(600))
@@ -161,9 +165,12 @@ namespace TaskManager
                 context.Response.Headers.Append("Content-Security-Policy", "self");
                 await next();
             });
-            app.UseHttpsRedirection();
+            if (!app.Environment.IsProduction())
+            {
+                app.UseHttpsRedirection();
+            }
             app.UseStaticFiles();
-            app.UseCors("AllowAll");
+            app.UseCors("AllowFFBHost");
 
             app.UseRouting();
 
@@ -174,6 +181,10 @@ namespace TaskManager
 
 
             app.MapControllers();
+            app.MapGet("/health", () => Results.Ok(new
+            {
+                status = "healthy"
+            }));
         }
     }
 }
