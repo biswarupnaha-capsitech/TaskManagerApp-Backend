@@ -141,11 +141,6 @@ namespace TaskManager.Controllers
                             //string token = ((ApplicationSignInManager)_signInManager).GenerateJwtToken(user);
 
                             var tokens = await _signInManager.GenerateTokensAsync(user);
-                            await _userManager.SetAuthenticationTokenAsync(
-                                                user,
-                                                AppConfig.Current.Jwt?.Issuer!,
-                                                "RefreshToken",
-                                                tokens.RefreshToken);
 
                             SetRefreshTokenCookie(tokens.RefreshToken);
 
@@ -210,7 +205,7 @@ namespace TaskManager.Controllers
         public async Task<ApiResponse<UserLogInResponse>> Refresh()
         {
             ApiResponse<UserLogInResponse> response = new();
-            var refreshTokenFromCookie = Request.Cookies["tm-refreshToken"];
+            var refreshTokenFromCookie = Request.Cookies["tm-refresh"];
 
             try
             {
@@ -260,11 +255,11 @@ namespace TaskManager.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(24)
             };
 
-            Response.Cookies.Append("tm-refreshToken", refreshToken, cookieOptions);
+            Response.Cookies.Append("tm-refresh", refreshToken, cookieOptions);
         }
         #endregion
 

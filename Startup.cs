@@ -132,7 +132,7 @@ namespace TaskManager
 
                 options.AddPolicy("AllowLocalHost", builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000", "http://localhost:5173")
+                    builder.WithOrigins("http://localhost:3000", "http://localhost:5173", _configuration["AllowedOrigins"])
                             .AllowAnyHeader()
                             .AllowCredentials()
                             .SetPreflightMaxAge(TimeSpan.FromSeconds(600))
@@ -158,7 +158,7 @@ namespace TaskManager
                 context.Response.Headers.Append("X-Frame-Options", "DENY");
                 context.Response.Headers.Append("X-XSS-Protection", "0");
                 context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-                //context.Response.Headers.Add("Content-Security-Policy", "self");
+                context.Response.Headers.Append("Content-Security-Policy", "self");
                 await next();
             });
             app.UseHttpsRedirection();

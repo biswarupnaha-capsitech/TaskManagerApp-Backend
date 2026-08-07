@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using TaskManager.Models;
 //using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
@@ -92,7 +93,7 @@ namespace TaskManager.Identity
 				issuer: AppConfig.Current.Jwt?.Issuer,
 				//audience: config["Jwt:Issuer"],
 				claims: claims,
-				expires: tokenType == TokenType.AccessToken ? DateTime.Now.AddMinutes(15) : DateTime.Now.AddDays(7),
+				expires: tokenType == TokenType.AccessToken ? DateTime.UtcNow.AddMinutes(60) : DateTime.UtcNow.AddDays(24),
 				signingCredentials: creds);
 
 			return new JwtSecurityTokenHandler().WriteToken(token);
@@ -120,8 +121,13 @@ namespace TaskManager.Identity
 			user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
 			await UserManager.UpdateAsync(user);
+            await UserManager.SetAuthenticationTokenAsync(
+								user,
+								AppConfig.Current.Jwt?.Issuer!,
+								"RefreshToken",
+								refreshToken);
 
-			return new AuthTokenResponse
+            return new AuthTokenResponse
 			{
 				AccessToken = accessToken,
 				RefreshToken = refreshToken
