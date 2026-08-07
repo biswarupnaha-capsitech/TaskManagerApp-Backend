@@ -45,7 +45,7 @@ namespace TaskManager
                .AddSignInManager<ApplicationSignInManager>()
                .RegisterMongoStores<ApplicationUser, IdentityRole>(_configuration["DbSettings:ConnectionString"]);
             services.Configure<DbSettings>(_configuration.GetSection("DbSettings"));
-            services.Configure<JwtSettings>(_configuration.GetSection("JwtSettings"));
+            services.Configure<JwtSettings>(_configuration.GetSection("Jwt"));
             services.AddCors();
             AppConfig.Init(_configuration);
 
@@ -124,23 +124,22 @@ namespace TaskManager
             });
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", builder =>
+                options.AddPolicy("Frontend", policy =>
                 {
-                    builder.AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .SetIsOriginAllowed(_ => true) // allow any origin
-                            .AllowCredentials()
-                            .SetPreflightMaxAge(TimeSpan.FromSeconds(600))
-                            .WithExposedHeaders("Content-Disposition");
-                });
+                    var allowedOrigins = _configuration["AllowedOrigins"]?
+                        .Split(
+                            ',',
+                            StringSplitOptions.RemoveEmptyEntries |
+                            StringSplitOptions.TrimEntries
+                        );
 
-                options.AddPolicy("AllowFFBHost", builder =>
-                {
-                    builder.WithOrigins(_configuration["AllowedOrigins"] ?? "http://localhost:5173")
-                            .AllowAnyHeader()
-                            .AllowCredentials()
-                            .SetPreflightMaxAge(TimeSpan.FromSeconds(600))
-                            .WithExposedHeaders("Content-Disposition");
+                    policy
+                        .WithOrigins(allowedOrigins ?? Array.Empty<string>())
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials()
+                        .SetPreflightMaxAge(TimeSpan.FromSeconds(600))
+                        .WithExposedHeaders("Content-Disposition");
                 });
             });
         }
@@ -172,7 +171,7 @@ namespace TaskManager
             app.UseStaticFiles();
 
             app.UseRouting();
-            app.UseCors("AllowAll");
+            app.UseCors("Frontend");
 
             app.UseAuthentication();
             app.UseAuthorization();
