@@ -116,7 +116,6 @@ namespace TaskManager.Controllers
         /// <returns><see cref="ApiResponse{UserLogInResponse}"/></returns>
         [HttpPost("Login")]
         [AllowAnonymous]
-        [RequireHttps]
         public async Task<ApiResponse<UserLogInResponse>> Login([FromBody] UserLogInRequest model)
         {
             ApiResponse<UserLogInResponse> response = new ApiResponse<UserLogInResponse>();

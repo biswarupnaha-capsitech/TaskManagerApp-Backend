@@ -170,7 +170,7 @@ namespace TaskManager
                 app.UseHttpsRedirection();
             }
             app.UseStaticFiles();
-            app.UseCors("AllowFFBHost");
+            app.UseCors("AllowAll");
 
             app.UseRouting();
 
