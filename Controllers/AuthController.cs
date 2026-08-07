@@ -189,12 +189,12 @@ namespace TaskManager.Controllers
             }
             catch (AppModelException ex)
             {
-                response.AddError(ex);
+                response.AddError(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while sign-in");
-                response.AddError(ex);
+                response.AddError(ex.Message);
             }
             return response;
         }

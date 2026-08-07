@@ -73,10 +73,11 @@ namespace TaskManager.Identity
                 //new Claim(ClaimTypes.SerialNumber, user.Company.Id)
             };
 
-			if (user.Roles?.Count > 0)
-				claims.AddRange(user.Roles.Select(r => new Claim(ClaimTypes.Role, r)));
+            if (user.Roles?.Count > 0)
+                claims.AddRange(user.Roles.Where(r => !string.IsNullOrEmpty(r))
+                                           .Select(r => new Claim(ClaimTypes.Role, r)));
 
-			if (user.Company != null)
+            if (user.Company != null)
 				claims.Add(new Claim("CompanyName", string.Join(",", user.Company.Name)));
 
 			//if (user.Branch != null)
