@@ -369,7 +369,7 @@ namespace TaskManager.Controllers
                     var userRcd = new ApplicationUser
                     {
                         UserName = user?.Email,
-                        Roles = new List<string>() { user?.Role?.Trim()?.ToUpper() },
+                        Roles = new List<string>() { "ADMIN" },
                         Email = user?.Email,
                         Status = ApplicationUserStatus.Active,
                         Name = new Data.NameModel(user?.Name?.First, user?.Name?.Last),
