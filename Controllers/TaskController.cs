@@ -11,7 +11,7 @@ namespace TaskManager.Controllers
 {
     [Route("api/[controller]")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    //[Authorize(Roles = "ADMIN")]
+    [Authorize(Roles = "ADMIN")]
     [ApiController]
     public class TaskController : ApiControllerBase
     {

@@ -374,7 +374,7 @@ namespace TaskManager.Controllers
                         Status = ApplicationUserStatus.Active,
                         Name = new Data.NameModel(user?.Name?.First, user?.Name?.Last),
                         EmailConfirmed = true,
-                        Role = user?.Role?.Trim()?.ToUpper(),
+                        Role = "ADMIN",
                         //Company = user?.Company,
                         RoleType = user.RoleType,
                         //Address = user?.Address,
