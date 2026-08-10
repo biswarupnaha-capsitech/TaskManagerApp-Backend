@@ -386,7 +386,6 @@ namespace TaskManager.Controllers
                     userRcd.Name = new Data.NameModel(user?.Name?.First, user?.Name?.Last);
                     //userRcd.Address = user?.Address;
                     userRcd.PhoneNumber = user?.PhoneNumber;
-
                     userRcd.UpdatedBy = new RecordUpdateInfo
                     {
                         Date = DateTime.UtcNow,
@@ -423,10 +422,12 @@ namespace TaskManager.Controllers
                     if (ba != null)
                         throw new Exception("User mail Already Exist");
 
-                    result = await _userManager.CreateAsync(userRcd, "welcome"); // Create without password.
+                    //result = await _userManager.CreateAsync(userRcd, "welcome"); // Create without password.
+                    result = await _userManager.CreateAsync(userRcd, user.PasswordHash ?? "welcome"); // Create without password.
                     if (result.Succeeded)
                     {
                         response.Result = userRcd;
+                        response.Message = "Registered successfully";
                     }
 
                 }
