@@ -118,7 +118,6 @@ namespace TaskManager.Identity
 
 			var refreshToken = GenerateJwtToken(user, TokenType.RefreshToken);
 
-			//user.RefreshToken = refreshToken;
 			user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
 			await UserManager.UpdateAsync(user);

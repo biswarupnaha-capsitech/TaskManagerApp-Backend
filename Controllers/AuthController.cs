@@ -204,14 +204,29 @@ namespace TaskManager.Controllers
         public async Task<ApiResponse<bool>> Logout()
         {
             ApiResponse<bool> response = new();
+            var db = new ApplicationUserDB(_dbConfig, User);
+            var user = await _userManager.FindByIdAsync(User.GetUserId());
             try
             {
+                await _userManager.RemoveAuthenticationTokenAsync(
+                                user!,
+                                AppConfig.Current.Jwt?.Issuer!,
+                                "RefreshToken");
+
+                user!.RefreshTokenExpiry = DateTime.UtcNow;
+
+                await _userManager.UpdateAsync(user!);
+
                 Response.Cookies.Delete("tm-refresh");
+                response.Result = true;
+                response.Message = "Logged out successfully";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while sign-out");
                 response.AddError(ex.Message);
+                response.Result = false;
+                response.Message = "Error logging out";
             }
             return response;
         }
@@ -230,7 +245,7 @@ namespace TaskManager.Controllers
 
                 var db = new ApplicationUserDB(_dbConfig);
                 //var user = await db.GetAsync(u => u.RefreshToken == refreshTokenFromCookie);
-                var user = await db.GetAsync(u => u.Tokens.Any(t=>t.Name == "RefreshToken" && t.Value == refreshTokenFromCookie));
+                var user = await db.GetAsync(u => u.Tokens.Any(t => t.Name == "RefreshToken" && t.Value == refreshTokenFromCookie));
 
                 if (user == null || user.RefreshTokenExpiry <= DateTime.UtcNow)
                     throw new AppModelException("Invalid or expired refresh token.");
