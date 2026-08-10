@@ -8,6 +8,7 @@ namespace TaskManager.Models
         public string Description { get; set; } = null!;
         public TaskManager.Common.TaskStatus Status { get; set; } = TaskManager.Common.TaskStatus.Pending;
         public bool IsDeleted { get; set; } = false;
+        public DateTime DueDate { get; set; }
         public string UserId { get; set; } = null!;
         public string ProjectId { get; set; } = null!;
     }

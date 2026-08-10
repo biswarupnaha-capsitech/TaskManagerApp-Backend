@@ -27,10 +27,17 @@ namespace TaskManager.Services.Task
             var filter = builder.Empty;
             var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
 
-            if (!string.IsNullOrEmpty(userId))
-            {
-                filter &= builder.Eq(x => x.UserId, userId);
-            }
+            //if (!string.IsNullOrEmpty(userId))
+            //{
+            //    filter &= builder.Eq(x => x.UserId, userId);
+            //}
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException("User ID not found in the token.");
+
+
+            filter &= builder.Eq(x => x.UserId, userId);
+            filter &= builder.Eq(x => x.IsDeleted, false);
+            filter &= builder.Eq(x => x.UserId, userId);
 
             if (!string.IsNullOrWhiteSpace(query.Search))
             {
