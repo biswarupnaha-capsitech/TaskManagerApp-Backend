@@ -199,6 +199,23 @@ namespace TaskManager.Controllers
             return response;
         }
 
+        [HttpPost("Logout")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<ApiResponse<bool>> Logout()
+        {
+            ApiResponse<bool> response = new();
+            try
+            {
+                Response.Cookies.Delete("tm-refresh");
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error while sign-out");
+                response.AddError(ex.Message);
+            }
+            return response;
+        }
+
         [HttpPost("Refresh")]
         [AllowAnonymous]
         public async Task<ApiResponse<UserLogInResponse>> Refresh()
