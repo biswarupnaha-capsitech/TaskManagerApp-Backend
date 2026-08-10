@@ -99,7 +99,8 @@ namespace TaskManager.Services.Task
             var update = Builders<Models.Task>.Update
                             .Set(x => x.Title, updatedTask.Title)
                             .Set(x => x.Description, updatedTask.Description)
-                            .Set(x => x.Status, updatedTask.Status);
+                            .Set(x => x.Status, updatedTask.Status)
+                            .Set(x => x.UpdatedAt, DateTime.UtcNow);
 
             await _taskCollection.UpdateOneAsync(x => x.Id == id, update);
         }
@@ -114,7 +115,9 @@ namespace TaskManager.Services.Task
             {
                 var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
                 await _taskCollection.UpdateOneAsync(x => x.Id == id && x.UserId == userId,
-                    Builders<Models.Task>.Update.Set(x => x.IsDeleted, true));
+                    Builders<Models.Task>.Update
+                    .Set(x => x.IsDeleted, true)
+                    .Set(x => x.UpdatedAt, DateTime.UtcNow));
             }
         }
     }
