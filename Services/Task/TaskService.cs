@@ -87,7 +87,9 @@ namespace TaskManager.Services.Task
                 Description = task.Description,
                 Status = Common.TaskStatus.Pending,
                 IsDeleted = false,
-                UserId = userId!
+                UserId = userId!,
+                ProjectId = task.ProjectId,
+                DueDate = task.DueDate
             };
             await _taskCollection.InsertOneAsync(newTask);
             return new TaskDTO
@@ -96,7 +98,8 @@ namespace TaskManager.Services.Task
                 Title = newTask.Title,
                 Description = newTask.Description,
                 Status = newTask.Status,
-                IsDeleted = newTask.IsDeleted
+                IsDeleted = newTask.IsDeleted,
+                DueDate = newTask.DueDate
             };
         }
 
@@ -107,6 +110,7 @@ namespace TaskManager.Services.Task
                             .Set(x => x.Title, updatedTask.Title)
                             .Set(x => x.Description, updatedTask.Description)
                             .Set(x => x.Status, updatedTask.Status)
+                            .Set(x=>x.DueDate, updatedTask.DueDate)
                             .Set(x => x.UpdatedAt, DateTime.UtcNow);
 
             await _taskCollection.UpdateOneAsync(x => x.Id == id, update);

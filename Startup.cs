@@ -13,6 +13,7 @@ using TaskManager.Identity;
 using TaskManager.Models;
 using TaskManager.Services;
 using TaskManager.Services.Auth;
+using TaskManager.Services.Project;
 using TaskManager.Services.Task;
 using IdentityRole = Capsitech.Data.MongoDB.Identity.IdentityRole;
 
@@ -75,6 +76,7 @@ namespace TaskManager
             DbConventions.RegisterCamelCaseConvention();
             services.AddScoped<AccountService>();
             services.AddScoped<ITaskService, TaskService>();
+            services.AddScoped<IProjectService, ProjectService>();
 
             services.AddControllers().AddJsonOptions(options =>
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase

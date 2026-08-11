@@ -6,5 +6,6 @@ namespace TaskManager.Config.Db
         public string IdentityCollectionName { get; set; } = null!;
         public string DatabaseName { get; set; } = null!;
         public string TasksCollectionName { get; set; } = null!;
+        public string ProjectsCollectionName { get; set; } = null!;
     }
 }

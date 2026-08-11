@@ -1,10 +1,14 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text.Json;
+using System.Text.RegularExpressions;
 using Capsitech.Extensions;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using TaskManager.Config.Db;
 using TaskManager.Dtos.Common;
 using TaskManager.Dtos.Project;
 using TaskManager.Dtos.Task;
+using TaskManager.Models;
 
 namespace TaskManager.Services.Project
 {
@@ -14,135 +18,92 @@ namespace TaskManager.Services.Project
         private readonly IMongoCollection<Models.Task>? _taskCollection;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProjectService(IMongoDatabase database, IHttpContextAccessor httpContextAccessor)
+        public ProjectService(IOptions<DbSettings> dbSettings, IHttpContextAccessor httpContextAccessor)
         {
-            _projectCollection = database.GetCollection<Models.Project>("Projects");
-            _taskCollection = database.GetCollection<Models.Task>("Tasks");
+            var mongoClient = new MongoClient(dbSettings.Value.ConnectionString);
+            var database = mongoClient.GetDatabase(dbSettings.Value.DatabaseName);
+            _taskCollection = database.GetCollection<Models.Task>(dbSettings.Value.TasksCollectionName);
+            _projectCollection = database.GetCollection<Models.Project>(dbSettings.Value.ProjectsCollectionName);
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public Task<ProjectDTO> CreateAsync(MutateProjectDTO project)
+        public async Task<ProjectDTO> CreateAsync(CreateProjectDTO project)
         {
-            throw new NotImplementedException();
+            var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+            var newProject = new Models.Project
+            {
+                Title = project.Title,
+                Description = project.Description!,
+                IsDeleted = false,
+                IsCompleted = false,
+                UserId = userId!
+            };
+            await _projectCollection!.InsertOneAsync(newProject);
+            return new ProjectDTO
+            {
+                Id = newProject.Id!,
+                Title = newProject.Title,
+                Description = newProject.Description,
+                IsDeleted = newProject.IsDeleted,
+                IsCompleted = newProject.IsCompleted
+            };
         }
 
-        public System.Threading.Tasks.Task DeleteAsync(string id, bool hardDelete = true)
+        public async System.Threading.Tasks.Task DeleteAsync(string id, bool hardDelete = true)
         {
-            throw new NotImplementedException();
+            if (hardDelete)
+            {
+                await _projectCollection.DeleteOneAsync(x => x.Id == id);
+            }
+            else
+            {
+                var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+                await _projectCollection.UpdateOneAsync(x => x.Id == id && x.UserId == userId,
+                    Builders<Models.Project>.Update
+                    .Set(x => x.IsDeleted, true)
+                    .Set(x => x.UpdatedAt, DateTime.UtcNow));
+            }
         }
 
-        public System.Threading.Tasks.Task UpdateAsync(string id, MutateProjectDTO project)
+        public async System.Threading.Tasks.Task UpdateAsync(string id, UpdateProjectDTO project)
         {
-            throw new NotImplementedException();
+            var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+            var update = Builders<Models.Project>.Update
+                            .Set(x => x.Title, project.Title)
+                            .Set(x => x.Description, project.Description)
+                            .Set(x => x.IsCompleted, project.IsCompleted)
+                            .Set(x => x.UpdatedAt, DateTime.UtcNow);
+
+            await _projectCollection.UpdateOneAsync(x => x.Id == id, update);
         }
 
         public async Task<PaginatedResultDto<ProjectWithTasksDTO>> GetAsync(ProjectQueryDTO query)
         {
-            var projectBuilder =
-                Builders<Models.Project>.Filter;
-
-            var taskBuilder =
-                Builders<Models.Task>.Filter;
-
-
-            // =========================================================
-            // USER
-            // =========================================================
-
+            var projectBuilder = Builders<Models.Project>.Filter;
+            var taskBuilder = Builders<Models.Task>.Filter;
             var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
 
             if (string.IsNullOrEmpty(userId))
                 throw new UnauthorizedAccessException("User ID not found in the token.");
 
-
-            // =========================================================
-            // MONTH
-            // =========================================================
-
-            var now = DateTime.UtcNow;
-
-            var year = query.Year ?? now.Year;
-            var month = query.Month ?? now.Month;
+            var year = query.Year ?? DateTime.UtcNow.Year;
+            var month = query.Month ?? DateTime.UtcNow.Month;
+            var day = query.Day ?? DateTime.UtcNow.Day;
 
             if (month < 1 || month > 12)
-            {
-                throw new ArgumentException(
-                    "Month must be between 1 and 12."
-                );
-            }
-
-            var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
-
-            var endDate = startDate.AddMonths(1);
+                throw new ArgumentException("Month must be between 1 and 12.");
 
 
-            // =========================================================
-            // TASK FILTER
-            // =========================================================
-
-            var taskFilter = taskBuilder.Empty;
-
-            taskFilter &= taskBuilder.Eq(
-                x => x.UserId,
-                userId
-            );
-
-            taskFilter &= taskBuilder.Eq(
-                x => x.IsDeleted,
-                false
-            );
-
-            taskFilter &= taskBuilder.Gte(
-                x => x.DueDate,
-                startDate
-            );
-
-            taskFilter &= taskBuilder.Lt(
-                x => x.DueDate,
-                endDate
-            );
-
-
-            // =========================================================
-            // OPTIONAL DAY FILTER
-            // =========================================================
-
-            if (query.Day.HasValue)
-            {
-                var daysInMonth =
-                    DateTime.DaysInMonth(year, month);
-
-                if (query.Day.Value < 1 || query.Day.Value > daysInMonth)
-                    throw new ArgumentException("Invalid day for selected month.");
-
-                var dayStart = startDate.AddDays(query.Day.Value - 1);
-
-                var dayEnd = dayStart.AddDays(1);
-
-                taskFilter &= taskBuilder.Gte(
-                    x => x.DueDate,
-                    dayStart
-                );
-
-                taskFilter &= taskBuilder.Lt(
-                    x => x.DueDate,
-                    dayEnd
-                );
-            }
-
-
-            // =========================================================
-            // PROJECT FILTER
-            // =========================================================
+            var startDate = query.Day.HasValue ?
+                new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc) :
+                new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var endDate = query.EndDate?.ToUniversalTime() ?? startDate.AddMonths(1);
 
             var projectFilter = projectBuilder.Empty;
             projectFilter &= projectBuilder.Eq(x => x.UserId, userId);
             projectFilter &= projectBuilder.Eq(x => x.IsDeleted, false);
 
 
-            // =========================================================
-            // PROJECT SEARCH
-            // =========================================================
 
             if (!string.IsNullOrWhiteSpace(query.Search))
             {
@@ -150,150 +111,66 @@ namespace TaskManager.Services.Project
 
                 projectFilter &= projectBuilder.Or(
                     projectBuilder.Regex(x => x.Id, regex),
-                    projectBuilder.Regex(x => x.Title, regex),
-                    projectBuilder.Regex(x => x.Description, regex)
-                );
+                            projectBuilder.Regex(x => x.Title, regex),
+                            projectBuilder.Regex(x => x.Description, regex)
+                        );
             }
 
-
-            // =========================================================
-            // 1. FIND TASKS FOR SELECTED MONTH/DAY
-            // =========================================================
-
-            var matchingTaskProjectIds = await _taskCollection
-                    .Find(taskFilter)
-                    .Project(x => x.ProjectId)
-                    .ToListAsync();
-
-
-            // =========================================================
-            // 2. PROJECTS MUST HAVE A MATCHING TASK
-            // =========================================================
-
-            projectFilter &= projectBuilder.In(x => x.Id, matchingTaskProjectIds);
-
-
-            // =========================================================
-            // 3. PAGINATE PROJECTS
-            // =========================================================
-
-            var page = Math.Max(query.Page, 1);
-            var pageSize = Math.Clamp(query.PageSize, 1, 30);
-            var projectQuery = _projectCollection.Find(projectFilter);
-            var total = await projectQuery.CountDocumentsAsync();
-
-
-            var projects = query.FetchAll
-                ? await projectQuery
-                    .SortBy(x => x.Title)
-                    .ToListAsync()
-                : await projectQuery
-                    .SortBy(x => x.Title)
-                    .Skip((page - 1) * pageSize)
-                    .Limit(pageSize)
-                    .ToListAsync();
-
-
-            // =========================================================
-            // 4. NO PROJECTS
-            // =========================================================
-
-            if (projects.Count == 0)
+            var aggregatePipeline =
+                _projectCollection.Aggregate()
+                .Match(projectFilter)
+                .Lookup<Models.Project, Models.Task, ProjectWithRawTasks>(
+                    foreignCollection: _taskCollection,
+                    localField: p => p.Id,
+                    foreignField: t => t.ProjectId,
+                    @as: p => p.Tasks
+                )
+            .Match(p => p.Tasks
+                .Any(t =>
+                !t.IsDeleted && t.UserId == userId && t.DueDate >= startDate && t.DueDate < endDate)
+            )
+            .Project(x => new ProjectWithTasksDTO
             {
-                return new PaginatedResultDto<ProjectWithTasksDTO>
-                {
-                    Results = [],
-                    Total = total,
-                    Page = page,
-                    PageSize = pageSize
-                };
+                Id = x.Id!,
+                Title = x.Title,
+                Description = x.Description,
+                IsCompleted = x.IsCompleted,
+                IsDeleted = x.IsDeleted,
+                Tasks = x.Tasks
+                    .Select(t => new TaskDTO
+                    {
+                        Id = t.Id!,
+                        Title = t.Title,
+                        Description = t.Description,
+                        Status = t.Status,
+                        DueDate = t.DueDate
+                    })
+                    .ToList()
+            });
+
+            var result = new List<ProjectWithTasksDTO>();
+            if (!query.FetchAll)
+            {
+                result = await aggregatePipeline
+                    .Skip((query.Page - 1) * query.PageSize)
+                    .Limit(query.PageSize)
+                    .ToListAsync();
+            }
+            else
+            {
+                result = await aggregatePipeline
+                    .ToListAsync();
             }
 
-
-            // =========================================================
-            // 5. ONLY LOAD TASKS FOR PAGINATED PROJECTS
-            // =========================================================
-
-            var projectIds = projects
-                    .Select(x => x.Id!)
-                    .ToList();
-
-            taskFilter &= taskBuilder.In(x => x.ProjectId, projectIds);
-
-
-            // =========================================================
-            // 6. AGGREGATION
-            // =========================================================
-
-            var taskGroups = await _taskCollection
-                    .Aggregate()
-                    .Match(taskFilter)
-                    .Group(
-                        x => new
-                        {
-                            x.ProjectId,
-                            x.DueDate
-                        },
-                        g => new
-                        {
-                            ProjectId = g.Key.ProjectId!,
-                            Date = g.Key.DueDate,
-                            Tasks = g.ToList()
-                        }
-                    )
-                    .SortBy(x => x.Date)
-                    .ToListAsync();
-
-
-            // =========================================================
-            // 7. MAP AGGREGATED TASKS TO PROJECTS
-            // =========================================================
-
-            var tasksByProject = taskGroups
-                    .GroupBy(x => x.ProjectId)
-                    .ToDictionary(
-                        x => x.Key,
-                        x => x
-                            .OrderBy(g => g.Date)
-                            .Select(g => new TaskDateGroupDTO
-                            {
-                                Date = g.Date,
-
-                                Tasks = g.Tasks
-                                    .Select(task => new TaskDTO
-                                    {
-                                        Id = task.Id!,
-                                        Title = task.Title,
-                                        Description = task.Description,
-                                        Status = task.Status,
-                                        DueDate = task.DueDate,
-                                    })
-                                    .ToList()
-                            })
-                            .ToList()
-                    );
-
-
-            // =========================================================
-            // 8. FINAL RESPONSE
-            // =========================================================
-
-            var results = projects.Select(project => new ProjectWithTasksDTO
-            {
-                Id = project.Id!,
-                Title = project.Title,
-                Description = project.Description,
-                IsDeleted = project.IsDeleted,
-                ProjectTasks = tasksByProject.TryGetValue(project.Id!, out var groups) ? groups : []
-            }).ToList();
+            var total = result.Count();
 
 
             return new PaginatedResultDto<ProjectWithTasksDTO>
             {
-                Results = results,
+                Results = result,
                 Total = total,
-                Page = page,
-                PageSize = pageSize
+                Page = query.Page,
+                PageSize = query.PageSize
             };
         }
     }

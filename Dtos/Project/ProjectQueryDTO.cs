@@ -5,20 +5,19 @@ namespace TaskManager.Dtos.Project
 {
     public class ProjectQueryDTO : PaginatedQueryDto
     {
-            public int? Year { get; set; }
-            public int? Month { get; set; }
-            public int? Day { get; set; }
+        public int? Year { get; set; }
+        public int? Month { get; set; }
+        public int? Day { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 
     public sealed class ProjectWithTasksDTO : ProjectDTO
     {
-        public List<TaskDateGroupDTO> ProjectTasks { get; set; } = [];
+        public List<TaskDTO> Tasks { get; set; } = [];
     }
 
-    public sealed class TaskDateGroupDTO
+    public class ProjectWithRawTasks : Models.Project
     {
-        public DateTime Date { get; set; }
-
-        public List<TaskDTO> Tasks { get; set; } = [];
+        public List<Models.Task> Tasks { get; set; } = new();
     }
 }

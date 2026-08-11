@@ -1,4 +1,6 @@
-﻿using TaskManager.Models.Base;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using TaskManager.Models.Base;
 
 namespace TaskManager.Models
 {
@@ -9,7 +11,11 @@ namespace TaskManager.Models
         public TaskManager.Common.TaskStatus Status { get; set; } = TaskManager.Common.TaskStatus.Pending;
         public bool IsDeleted { get; set; } = false;
         public DateTime DueDate { get; set; }
+
+        [BsonRepresentation(BsonType.ObjectId)]
         public string UserId { get; set; } = null!;
+
+        [BsonRepresentation(BsonType.ObjectId)]
         public string ProjectId { get; set; } = null!;
     }
 }

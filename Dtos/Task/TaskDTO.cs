@@ -16,6 +16,8 @@ namespace TaskManager.Dtos.Task
     {
         public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
+        public string ProjectId { get; set; } = null!; 
+        public DateTime DueDate { get; set; }
     }
 
 
@@ -24,14 +26,7 @@ namespace TaskManager.Dtos.Task
         public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
         public TaskManager.Common.TaskStatus Status { get; set; } = TaskManager.Common.TaskStatus.Pending;
-    }
-
-    public class TodoFilter
-    {
-        public bool? IsCompleted { get; set; }
-
-        public string? Title { get; set; }
-
-        public DateTime? CreatedAfter { get; set; }
+        public DateTime DueDate { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }
