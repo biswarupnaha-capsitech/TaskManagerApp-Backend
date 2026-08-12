@@ -23,6 +23,10 @@ namespace TaskManager.Services.Task
 
         public async Task<PaginatedResultDto<TaskDTO>> GetAsync(PaginatedQueryDto query)
         {
+            var indexKeys = Builders<Models.Task>.IndexKeys.Ascending(p => p.ProjectId);
+            var indexModel = new CreateIndexModel<Models.Task>(indexKeys);
+            await _taskCollection!.Indexes.CreateOneAsync(indexModel);
+
             var builder = Builders<Models.Task>.Filter;
             var filter = builder.Empty;
             var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
@@ -68,7 +72,9 @@ namespace TaskManager.Services.Task
                     Title = t.Title,
                     Description = t.Description,
                     Status = t.Status,
-                    IsDeleted = t.IsDeleted
+                    IsDeleted = t.IsDeleted,
+                    DueDate = t.DueDate,
+                    ProjectId = t.ProjectId,
                 }).ToList(),
                 Total = total,
                 Page = query.Page,

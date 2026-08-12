@@ -10,6 +10,7 @@ namespace TaskManager.Dtos.Task
         public TaskManager.Common.TaskStatus Status { get; set; } = TaskManager.Common.TaskStatus.Pending;
         public bool IsDeleted { get; set; } = false;
         public DateTime DueDate { get; set; }
+        public string ProjectId { get; set; } = null!;
     }
 
     public class CreateTaskDTO

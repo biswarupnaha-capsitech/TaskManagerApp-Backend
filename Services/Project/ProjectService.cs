@@ -79,6 +79,10 @@ namespace TaskManager.Services.Project
 
         public async Task<PaginatedResultDto<ProjectWithTasksDTO>> GetAsync(ProjectQueryDTO query)
         {
+            var indexKeys = Builders<Models.Project>.IndexKeys.Ascending(p => p.UserId);
+            var indexModel = new CreateIndexModel<Models.Project>(indexKeys);
+            await _projectCollection!.Indexes.CreateOneAsync(indexModel);
+
             var projectBuilder = Builders<Models.Project>.Filter;
             var taskBuilder = Builders<Models.Task>.Filter;
             var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
@@ -125,10 +129,7 @@ namespace TaskManager.Services.Project
                     foreignField: t => t.ProjectId,
                     @as: p => p.Tasks
                 )
-            .Match(p => p.Tasks
-                .Any(t =>
-                !t.IsDeleted && t.UserId == userId && t.DueDate >= startDate && t.DueDate < endDate)
-            )
+             
             .Project(x => new ProjectWithTasksDTO
             {
                 Id = x.Id!,
