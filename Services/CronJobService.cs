@@ -66,16 +66,6 @@ namespace TaskManager.Services
             _timer?.Dispose();
             GC.SuppressFinalize(this);
         }
-
-        System.Threading.Tasks.Task IHostedService.StartAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        System.Threading.Tasks.Task IHostedService.StopAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     // ReSharper disable once UnusedTypeParameter

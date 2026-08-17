@@ -112,11 +112,11 @@ namespace TaskManager
                     {securityScheme, Array.Empty<string>()}
                 });
             });
-            //services.AddCronJob<DailyElevenPmJobScheduler>(c =>
-            //{
-            //    c.TimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-            //    c.CronExpression = @"0 23 * * *"; //every day 11pm
-            //});
+            services.AddCronJob<DailyElevenPmJobScheduler>(c =>
+            {
+                c.TimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+                c.CronExpression = @"0 23 * * *"; //every day 11pm
+            });
             services.AddHttpContextAccessor();
             services.Configure<ForwardedHeadersOptions>(options =>
             {
