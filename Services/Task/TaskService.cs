@@ -5,36 +5,24 @@ using MongoDB.Driver;
 using TaskManager.Config.Db;
 using TaskManager.Dtos.Common;
 using TaskManager.Dtos.Task;
+using TaskManager.Services.Base;
 
 namespace TaskManager.Services.Task
 {
-    public class TaskService : ITaskService
+    public class TaskService(IOptions<DbSettings> dbSettings, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider) :
+        BaseService<Models.Task>(DbCollections.Tasks, dbSettings, serviceProvider, httpContextAccessor),
+        ITaskService
     {
-        private readonly IMongoCollection<Models.Task> _taskCollection;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public TaskService(IOptions<DbSettings> dbSettings, IHttpContextAccessor httpContextAccessor)
-        {
-            var mongoClient = new MongoClient(dbSettings.Value.ConnectionString);
-            var database = mongoClient.GetDatabase(dbSettings.Value.DatabaseName);
-            _taskCollection = database.GetCollection<Models.Task>(dbSettings.Value.TasksCollectionName);
-            _httpContextAccessor = httpContextAccessor;
-        }
-
         public async Task<PaginatedResultDto<TaskDTO>> GetAsync(PaginatedQueryDto query)
         {
             var indexKeys = Builders<Models.Task>.IndexKeys.Ascending(p => p.ProjectId);
             var indexModel = new CreateIndexModel<Models.Task>(indexKeys);
-            await _taskCollection!.Indexes.CreateOneAsync(indexModel);
+            await _collection!.Indexes.CreateOneAsync(indexModel);
 
             var builder = Builders<Models.Task>.Filter;
             var filter = builder.Empty;
-            var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+            var userId = User.GetUserId();
 
-            //if (!string.IsNullOrEmpty(userId))
-            //{
-            //    filter &= builder.Eq(x => x.UserId, userId);
-            //}
             if (string.IsNullOrEmpty(userId))
                 throw new UnauthorizedAccessException("User ID not found in the token.");
 
@@ -55,7 +43,7 @@ namespace TaskManager.Services.Task
                 );
             }
 
-            var find = _taskCollection.Find(filter);
+            var find = _collection.Find(filter);
             var total = await find.CountDocumentsAsync();
 
             var tasks = query.FetchAll
@@ -86,7 +74,7 @@ namespace TaskManager.Services.Task
 
         public async Task<TaskDTO> CreateAsync(CreateTaskDTO task)
         {
-            var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+            var userId = User.GetUserId();
             var newTask = new Models.Task
             {
                 Title = task.Title,
@@ -97,7 +85,7 @@ namespace TaskManager.Services.Task
                 ProjectId = task.ProjectId,
                 DueDate = task.DueDate
             };
-            await _taskCollection.InsertOneAsync(newTask);
+            await _collection.InsertOneAsync(newTask);
             return new TaskDTO
             {
                 Id = newTask.Id!,
@@ -111,27 +99,27 @@ namespace TaskManager.Services.Task
 
         public async System.Threading.Tasks.Task UpdateAsync(string id, UpdateTaskDTO updatedTask)
         {
-            var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+            var userId = User.GetUserId();
             var update = Builders<Models.Task>.Update
                             .Set(x => x.Title, updatedTask.Title)
                             .Set(x => x.Description, updatedTask.Description)
                             .Set(x => x.Status, updatedTask.Status)
-                            .Set(x=>x.DueDate, updatedTask.DueDate)
+                            .Set(x => x.DueDate, updatedTask.DueDate)
                             .Set(x => x.UpdatedAt, DateTime.UtcNow);
 
-            await _taskCollection.UpdateOneAsync(x => x.Id == id, update);
+            await _collection.UpdateOneAsync(x => x.Id == id, update);
         }
 
         public async System.Threading.Tasks.Task DeleteAsync(string id, bool hardDelete = true)
         {
             if (hardDelete)
             {
-                await _taskCollection.DeleteOneAsync(x => x.Id == id);
+                await _collection.DeleteOneAsync(x => x.Id == id);
             }
             else
             {
-                var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
-                await _taskCollection.UpdateOneAsync(x => x.Id == id && x.UserId == userId,
+                var userId = User.GetUserId();
+                await _collection.UpdateOneAsync(x => x.Id == id && x.UserId == userId,
                     Builders<Models.Task>.Update
                     .Set(x => x.IsDeleted, true)
                     .Set(x => x.UpdatedAt, DateTime.UtcNow));

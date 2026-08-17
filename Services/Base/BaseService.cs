@@ -12,7 +12,7 @@ namespace TaskManager.Services.Base
     public class BaseService<Model>
         where Model : BaseModel
     {
-        private readonly IMongoCollection<Model> _collection;
+        protected readonly IMongoCollection<Model> _collection;
         protected readonly IServiceProvider _serviceProvider;
 
         protected readonly IHttpContextAccessor _httpContextAccessor;

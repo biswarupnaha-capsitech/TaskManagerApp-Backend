@@ -9,27 +9,17 @@ using TaskManager.Dtos.Common;
 using TaskManager.Dtos.Project;
 using TaskManager.Dtos.Task;
 using TaskManager.Models;
+using TaskManager.Services.Base;
 
 namespace TaskManager.Services.Project
 {
-    public class ProjectService : IProjectService
+    public class ProjectService(IOptions<DbSettings> dbSettings, IServiceProvider serviceProvider, IHttpContextAccessor httpContextAccessor) :
+        BaseService<Models.Project>(DbCollections.Projects, dbSettings, serviceProvider, httpContextAccessor), 
+        IProjectService
     {
-        private readonly IMongoCollection<Models.Project>? _projectCollection;
-        private readonly IMongoCollection<Models.Task>? _taskCollection;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public ProjectService(IOptions<DbSettings> dbSettings, IHttpContextAccessor httpContextAccessor)
-        {
-            var mongoClient = new MongoClient(dbSettings.Value.ConnectionString);
-            var database = mongoClient.GetDatabase(dbSettings.Value.DatabaseName);
-            _taskCollection = database.GetCollection<Models.Task>(dbSettings.Value.TasksCollectionName);
-            _projectCollection = database.GetCollection<Models.Project>(dbSettings.Value.ProjectsCollectionName);
-            _httpContextAccessor = httpContextAccessor;
-        }
-
         public async Task<ProjectDTO> CreateAsync(CreateProjectDTO project)
         {
-            var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+            var userId = User.GetUserId();
             var newProject = new Models.Project
             {
                 Title = project.Title,
@@ -38,7 +28,7 @@ namespace TaskManager.Services.Project
                 IsCompleted = false,
                 UserId = userId!
             };
-            await _projectCollection!.InsertOneAsync(newProject);
+            await _collection!.InsertOneAsync(newProject);
             return new ProjectDTO
             {
                 Id = newProject.Id!,
@@ -53,12 +43,12 @@ namespace TaskManager.Services.Project
         {
             if (hardDelete)
             {
-                await _projectCollection.DeleteOneAsync(x => x.Id == id);
+                await _collection.DeleteOneAsync(x => x.Id == id);
             }
             else
             {
-                var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
-                await _projectCollection.UpdateOneAsync(x => x.Id == id && x.UserId == userId,
+                var userId = User.GetUserId();
+                await _collection.UpdateOneAsync(x => x.Id == id && x.UserId == userId,
                     Builders<Models.Project>.Update
                     .Set(x => x.IsDeleted, true)
                     .Set(x => x.UpdatedAt, DateTime.UtcNow));
@@ -67,25 +57,25 @@ namespace TaskManager.Services.Project
 
         public async System.Threading.Tasks.Task UpdateAsync(string id, UpdateProjectDTO project)
         {
-            var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+            var userId = User.GetUserId();
             var update = Builders<Models.Project>.Update
                             .Set(x => x.Title, project.Title)
                             .Set(x => x.Description, project.Description)
                             .Set(x => x.IsCompleted, project.IsCompleted)
                             .Set(x => x.UpdatedAt, DateTime.UtcNow);
 
-            await _projectCollection.UpdateOneAsync(x => x.Id == id, update);
+            await _collection.UpdateOneAsync(x => x.Id == id, update);
         }
 
         public async Task<PaginatedResultDto<ProjectWithTasksDTO>> GetAsync(ProjectQueryDTO query)
         {
             var indexKeys = Builders<Models.Project>.IndexKeys.Ascending(p => p.UserId);
             var indexModel = new CreateIndexModel<Models.Project>(indexKeys);
-            await _projectCollection!.Indexes.CreateOneAsync(indexModel);
+            await _collection!.Indexes.CreateOneAsync(indexModel);
 
             var projectBuilder = Builders<Models.Project>.Filter;
             var taskBuilder = Builders<Models.Task>.Filter;
-            var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+            var userId = User.GetUserId();
 
             if (string.IsNullOrEmpty(userId))
                 throw new UnauthorizedAccessException("User ID not found in the token.");
@@ -121,33 +111,32 @@ namespace TaskManager.Services.Project
             }
 
             var aggregatePipeline =
-                _projectCollection.Aggregate()
+                _collection.Aggregate()
                 .Match(projectFilter)
-                .Lookup<Models.Project, Models.Task, ProjectWithRawTasks>(
-                    foreignCollection: _taskCollection,
-                    localField: p => p.Id,
-                    foreignField: t => t.ProjectId,
-                    @as: p => p.Tasks
-                )
-             
-            .Project(x => new ProjectWithTasksDTO
-            {
-                Id = x.Id!,
-                Title = x.Title,
-                Description = x.Description,
-                IsCompleted = x.IsCompleted,
-                IsDeleted = x.IsDeleted,
-                Tasks = x.Tasks
-                    .Select(t => new TaskDTO
-                    {
-                        Id = t.Id!,
-                        Title = t.Title,
-                        Description = t.Description,
-                        Status = t.Status,
-                        DueDate = t.DueDate
-                    })
-                    .ToList()
-            });
+                .Lookup<Models.Task, ProjectWithRawTasks>(
+                    foreignCollectionName: DbCollections.Tasks,
+                    localField: "_id",
+                    foreignField: "projectId",
+                    @as: "Tasks"
+                    )
+                .Project(x => new ProjectWithTasksDTO
+                {
+                    Id = x.Id!,
+                    Title = x.Title,
+                    Description = x.Description,
+                    IsCompleted = x.IsCompleted,
+                    IsDeleted = x.IsDeleted,
+                    Tasks = x.Tasks
+                        .Select(t => new TaskForProjectDTO
+                        {
+                            Id = t.Id!,
+                            Title = t.Title,
+                            Description = t.Description,
+                            Status = t.Status,
+                            DueDate = t.DueDate
+                        })
+                        .ToList()
+                });
 
             var result = new List<ProjectWithTasksDTO>();
             if (!query.FetchAll)
@@ -163,7 +152,7 @@ namespace TaskManager.Services.Project
                     .ToListAsync();
             }
 
-            var total = result.Count();
+            var total = result.Count;
 
 
             return new PaginatedResultDto<ProjectWithTasksDTO>

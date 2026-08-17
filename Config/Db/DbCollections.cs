@@ -7,5 +7,6 @@ namespace TaskManager.Config.Db
         public static string Genres = "Genres";
         public static string BookShelfs = "BookShelfs";
         public static string Tasks = "Tasks";
+        public static string Projects = "Projects";
     }
 }

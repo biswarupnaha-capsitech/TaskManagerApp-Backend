@@ -13,7 +13,7 @@ namespace TaskManager.Dtos.Project
 
     public sealed class ProjectWithTasksDTO : ProjectDTO
     {
-        public List<TaskDTO> Tasks { get; set; } = [];
+        public List<TaskForProjectDTO> Tasks { get; set; } = [];
     }
 
     public class ProjectWithRawTasks : Models.Project
