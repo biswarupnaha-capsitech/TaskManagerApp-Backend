@@ -8,15 +8,16 @@ using TaskManager.Config.Db;
 using TaskManager.Dtos.Common;
 using TaskManager.Dtos.Project;
 using TaskManager.Dtos.Task;
-using TaskManager.Models;
 using TaskManager.Services.Base;
+using TaskManager.Services.Task;
 
 namespace TaskManager.Services.Project
 {
-    public class ProjectService(IOptions<DbSettings> dbSettings, IServiceProvider serviceProvider, IHttpContextAccessor httpContextAccessor) :
+    public class ProjectService(IOptions<DbSettings> dbSettings, IServiceProvider serviceProvider, IHttpContextAccessor httpContextAccessor, ITaskService taskService) :
         BaseService<Models.Project>(DbCollections.Projects, dbSettings, serviceProvider, httpContextAccessor), 
         IProjectService
     {
+        private readonly ITaskService _taskService = taskService;
         public async Task<ProjectDTO> CreateAsync(CreateProjectDTO project)
         {
             var userId = User.GetUserId();
@@ -63,8 +64,11 @@ namespace TaskManager.Services.Project
                             .Set(x => x.Description, project.Description)
                             .Set(x => x.IsCompleted, project.IsCompleted)
                             .Set(x => x.UpdatedAt, DateTime.UtcNow);
-
             await _collection.UpdateOneAsync(x => x.Id == id, update);
+            if (project.IsCompleted)
+            {
+                await taskService.CompleteTasksByProjectAsync(id);
+            }
         }
 
         public async Task<PaginatedResultDto<ProjectWithTasksDTO>> GetAsync(ProjectQueryDTO query)

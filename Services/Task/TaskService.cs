@@ -1,7 +1,9 @@
-﻿using Capsitech.Extensions;
+﻿using System.Net.NetworkInformation;
+using Capsitech.Extensions;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using TaskManager.Common;
 using TaskManager.Config.Db;
 using TaskManager.Dtos.Common;
 using TaskManager.Dtos.Task;
@@ -124,6 +126,36 @@ namespace TaskManager.Services.Task
                     .Set(x => x.IsDeleted, true)
                     .Set(x => x.UpdatedAt, DateTime.UtcNow));
             }
+        }
+
+        public async System.Threading.Tasks.Task CompleteTasksByProjectAsync(string projectId)
+        {
+            var userId = User.GetUserId();
+
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException(
+                    "User ID not found in the token."
+                );
+
+            var filter = Builders<Models.Task>.Filter.And(
+                Builders<Models.Task>.Filter.Eq(
+                    x => x.ProjectId,
+                    projectId
+                ),
+                Builders<Models.Task>.Filter.Eq(
+                    x => x.UserId,
+                    userId
+                )
+            );
+
+            var update = Builders<Models.Task>.Update
+                .Set(x => x.Status, Common.TaskStatus.Completed)
+                .Set(x => x.UpdatedAt, DateTime.UtcNow);
+
+            await _collection.UpdateManyAsync(
+                filter,
+                update
+            );
         }
     }
 }
