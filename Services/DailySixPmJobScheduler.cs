@@ -1,5 +1,6 @@
-﻿using Capsitech.Data.MongoDB;
-using TaskManager.Models;
+﻿using System.Text.Json;
+using Capsitech.Data.MongoDB;
+using Capsitech.Services;
 
 namespace TaskManager.Services
 {
@@ -32,14 +33,28 @@ namespace TaskManager.Services
 
         public override async Task<System.Threading.Tasks.Task> DoWork(CancellationToken cancellationToken)
         {
+            _logger.LogInformation(
+               "DailySixPmJobScheduler executing. Version: {Version}",
+               AppConfig.Current.Version
+           );
+            _logger.LogInformation("Attempting to send cron test email.");
             if (AppConfig.Current.Version == "admin-live")
             {
-
-                await _emailSender.SendEmailAsync(
-                    "biswarup.naha@capsitech.com",
+                var res=await _emailSender.SendEmailAsync(
+                    "jeeeeet6902@gmail.com",
                     "Congratulations!!",
                     "This is to inform you that you have successfully ran a cron job."
                 );
+                _logger.LogInformation(
+                "Email response:\n{Response}",
+                JsonSerializer.Serialize(
+                    res,
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    }
+                )
+            );
             }
 
             return System.Threading.Tasks.Task.CompletedTask;
