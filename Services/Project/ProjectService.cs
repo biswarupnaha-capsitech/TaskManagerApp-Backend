@@ -13,8 +13,8 @@ using TaskManager.Services.Task;
 
 namespace TaskManager.Services.Project
 {
-    public class ProjectService(IOptions<DbSettings> dbSettings, IServiceProvider serviceProvider, IHttpContextAccessor httpContextAccessor, ITaskService taskService) :
-        BaseService<Models.Project>(DbCollections.Projects, dbSettings, serviceProvider, httpContextAccessor), 
+    public class ProjectService(IOptions<DbSettings> dbSettings, IMongoClient mongoClient, IServiceProvider serviceProvider, IHttpContextAccessor httpContextAccessor, ITaskService taskService) :
+        BaseService<Models.Project>(DbCollections.Projects, dbSettings, serviceProvider, mongoClient, httpContextAccessor), 
         IProjectService
     {
         private readonly ITaskService _taskService = taskService;
@@ -67,7 +67,7 @@ namespace TaskManager.Services.Project
             await _collection.UpdateOneAsync(x => x.Id == id, update);
             if (project.IsCompleted)
             {
-                await taskService.CompleteTasksByProjectAsync(id);
+                await _taskService.CompleteTasksByProjectAsync(id);
             }
         }
 

@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using TaskManager.Config.Auth;
 using TaskManager.Config.Db;
@@ -45,12 +47,14 @@ namespace TaskManager
                 io.Password.RequireNonAlphanumeric = false;
                 io.Password.RequireUppercase = false;
             })
-               .AddDefaultTokenProviders()
-               .AddSignInManager<ApplicationSignInManager>()
-               .RegisterMongoStores<ApplicationUser, IdentityRole>(_configuration["DbSettings:ConnectionString"]);
+            .AddDefaultTokenProviders()
+            .AddSignInManager<ApplicationSignInManager>()
+            .RegisterMongoStores<ApplicationUser, IdentityRole>(_configuration["DbSettings:ConnectionString"]);
+
             services.Configure<DbSettings>(_configuration.GetSection("DbSettings"));
             services.Configure<JwtSettings>(_configuration.GetSection("Jwt"));
             services.AddCors();
+
             AppConfig.Init(_configuration);
 
             services.AddAuthentication().AddJwtBearer(cfg =>
@@ -144,6 +148,9 @@ namespace TaskManager
 
                 //options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             });
+
+            services.AddSingleton<IMongoClient>(config =>
+                 new MongoClient(config.GetRequiredService<IOptions<DbSettings>>().Value.ConnectionString));
 
             services.AddTransient<IEmailSender, EmailSender>();
             EmailSender.Init(_configuration);

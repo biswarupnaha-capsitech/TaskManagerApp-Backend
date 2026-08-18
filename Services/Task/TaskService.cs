@@ -11,8 +11,8 @@ using TaskManager.Services.Base;
 
 namespace TaskManager.Services.Task
 {
-    public class TaskService(IOptions<DbSettings> dbSettings, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider) :
-        BaseService<Models.Task>(DbCollections.Tasks, dbSettings, serviceProvider, httpContextAccessor),
+    public class TaskService(IOptions<DbSettings> dbSettings, IHttpContextAccessor httpContextAccessor, IMongoClient mongoClient, IServiceProvider serviceProvider) :
+        BaseService<Models.Task>(DbCollections.Tasks, dbSettings, serviceProvider, mongoClient, httpContextAccessor),
         ITaskService
     {
         public async Task<PaginatedResultDto<TaskDTO>> GetAsync(PaginatedQueryDto query)
