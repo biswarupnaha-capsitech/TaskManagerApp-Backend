@@ -67,7 +67,7 @@ namespace TaskManager.Services.Project
             await _collection.UpdateOneAsync(x => x.Id == id, update);
             if (project.IsCompleted)
             {
-                await taskService.CompleteTasksByProjectAsync(id);
+                await _taskService.CompleteTasksByProjectAsync(id);
             }
         }
 

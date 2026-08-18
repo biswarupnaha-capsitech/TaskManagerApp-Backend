@@ -14,13 +14,14 @@ namespace TaskManager.Services.Base
     {
         protected readonly IMongoCollection<Model> _collection;
         protected readonly IServiceProvider _serviceProvider;
-
+        protected readonly IMongoClient _mongoClient;
         protected readonly IHttpContextAccessor _httpContextAccessor;
 
         public BaseService(
             string collectionName,
             IOptions<DbSettings> dbSettings,
             IServiceProvider serviceProvider,
+            IMongoClient mongoClient,
             IHttpContextAccessor httpContextAccessor
         )
         {
@@ -40,8 +41,8 @@ namespace TaskManager.Services.Base
                 );
             }
 
-            var mongoClient = new MongoClient(dbSettings.Value.ConnectionString);
-            var mongoDatabase = mongoClient.GetDatabase(dbSettings.Value.DatabaseName);
+            _mongoClient = mongoClient;
+            var mongoDatabase = _mongoClient.GetDatabase(dbSettings.Value.DatabaseName);
             _collection = mongoDatabase.GetCollection<Model>(collectionName);
         }
 
