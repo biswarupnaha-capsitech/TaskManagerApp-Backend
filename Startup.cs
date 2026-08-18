@@ -1,9 +1,12 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using Capsitech.Data.MongoDB.Identity;
+using Capsitech.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -70,6 +73,78 @@ namespace TaskManager
 
 
             });
+
+            services.AddRateLimiter(options =>
+            {
+
+                //options.AddFixedWindowLimiter("api", limiterOptions =>
+                //{
+                //    limiterOptions.PermitLimit = 1000;
+                //    limiterOptions.Window = TimeSpan.FromMinutes(1);
+                //    limiterOptions.QueueLimit = 0;
+                //});
+                options.AddPolicy("api", httpContext =>
+                {
+                    var userId = httpContext.User.GetUserId();
+
+                    var partitionKey = !string.IsNullOrEmpty(userId) ? $"user:{userId}" : $"ip:{httpContext.Connection.RemoteIpAddress}";
+
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 100,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        });
+                });
+
+                //options.AddFixedWindowLimiter("auth", limiterOptions =>
+                //{
+                //    limiterOptions.PermitLimit = 50;
+                //    limiterOptions.Window = TimeSpan.FromMinutes(1);
+                //    limiterOptions.QueueLimit = 0;
+                //});
+                options.AddPolicy("auth", httpContext =>
+                {
+                    var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        ip,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        });
+                });
+
+                options.AddFixedWindowLimiter("refresh", limiterOptions =>
+                {
+                    limiterOptions.PermitLimit = 100;
+                    limiterOptions.Window = TimeSpan.FromMinutes(1);
+                    limiterOptions.QueueLimit = 0;
+                });
+
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.HttpContext.Response.StatusCode =
+                        StatusCodes.Status429TooManyRequests;
+
+                    await context.HttpContext.Response.WriteAsJsonAsync(
+                        new
+                        {
+                            status = 429,
+                            message = "Too many requests. Please try again later."
+                        },
+                        cancellationToken);
+                };
+
+                //options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            });
+
             services.AddTransient<IEmailSender, EmailSender>();
             EmailSender.Init(_configuration);
             //services.Configure<StorageConfiguration>(_configuration.GetSection("StorageConfiguration"));
@@ -178,6 +253,7 @@ namespace TaskManager
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseRateLimiter();
             app.MapControllers();
             app.MapGet("/health", () => Results.Ok(new
             {

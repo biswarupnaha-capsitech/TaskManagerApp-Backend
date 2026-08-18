@@ -2,6 +2,7 @@
 using Capsitech.Data.MongoDB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TaskManager.Common;
 using TaskManager.Dtos.Common;
 using TaskManager.Dtos.Task;
@@ -12,6 +13,7 @@ namespace TaskManager.Controllers
     [Route("api/[controller]")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     [Authorize(Roles = "ADMIN")]
+    [EnableRateLimiting("api")]
     [ApiController]
     public class TaskController : ApiControllerBase
     {

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.RateLimiting;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
@@ -115,6 +116,7 @@ namespace TaskManager.Controllers
         /// <param name="model">Login model</param>
         /// <returns><see cref="ApiResponse{UserLogInResponse}"/></returns>
         [HttpPost("Login")]
+        [EnableRateLimiting("auth")]
         [AllowAnonymous]
         public async Task<ApiResponse<UserLogInResponse>> Login([FromBody] UserLogInRequest model)
         {
@@ -232,6 +234,7 @@ namespace TaskManager.Controllers
         }
 
         [HttpPost("Refresh")]
+        [EnableRateLimiting("refresh")]
         [AllowAnonymous]
         public async Task<ApiResponse<UserLogInResponse>> Refresh()
         {
@@ -353,6 +356,7 @@ namespace TaskManager.Controllers
 
         #region Post User
         [HttpPost("SaveUser")]
+        [EnableRateLimiting("auth")]
         public async Task<ApiResponse<ApplicationUser>> SaveUser([FromBody] SaveUserReq user)
         {
             ApiResponse<ApplicationUser> response = new ApiResponse<ApplicationUser>();

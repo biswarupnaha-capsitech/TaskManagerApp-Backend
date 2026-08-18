@@ -2,6 +2,7 @@
 using Capsitech.Data.MongoDB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TaskManager.Common;
 using TaskManager.Dtos.Common;
 using TaskManager.Dtos.Project;
@@ -13,6 +14,7 @@ namespace TaskManager.Controllers
     [ApiController]
     [Authorize(AuthenticationSchemes = "Bearer")]
     [Authorize(Roles = "ADMIN")]
+    [EnableRateLimiting("api")]
     public class ProjectController : ApiControllerBase
     {
         private readonly ILogger<TaskController> _logger;
