@@ -194,10 +194,10 @@ namespace TaskManager
                     {securityScheme, Array.Empty<string>()}
                 });
             });
-            services.AddCronJob<DailyElevenPmJobScheduler>(c =>
+            services.AddCronJob<DailySixPmJobScheduler>(c =>
             {
                 c.TimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-                c.CronExpression = @"0 23 * * *"; //every day 11pm
+                c.CronExpression = @"0 18 * * *";
             });
             services.AddHttpContextAccessor();
             services.Configure<ForwardedHeadersOptions>(options =>

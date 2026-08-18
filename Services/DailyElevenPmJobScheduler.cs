@@ -36,7 +36,7 @@ namespace TaskManager.Services
             if (AppConfig.Current.Version == "admin-live")
             {
                 //await new EnDB(_dbConfig).DailyAttNotification();
-                await _emailSender.SendEmailAsync("biswarup.naha@capsitech.com", "test", "cron ran");
+                await _emailSender.SendEmailAsync("kuldeep.gehlot@capsitech.com", "test", "cron ran");
 
                 //var res = await new EnquiryCommunicationDB(_dbConfig).UpdateNotCalledCall();
                 //string subject = "Cron Job Executed - Daily 11PM Scheduler";
